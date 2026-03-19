@@ -18,12 +18,18 @@ export function useWebSocket(gameId, playerId, onMessage) {
   useEffect(() => {
     if (!gameId || !playerId) return
 
-    // We use a relative path to the current host.
-    // In Dev: Vite proxies /ws to localhost:8000
-    // In Prod: Vercel Rewrites forward /ws to Render
+    // Build the WebSocket URL.
+    //
+    // In development: VITE_WS_URL is not set, so we fall back to the same host.
+    //   Vite's proxy forwards /ws/... to ws://localhost:8000/ws/...
+    //
+    // In production (Vercel + Render): Vercel's serverless rewrites cannot proxy
+    //   WebSocket upgrade connections — only HTTP. So we MUST connect directly to
+    //   the Render backend. Set VITE_WS_URL=wss://dune-game.onrender.com in the
+    //   Vercel environment variables dashboard.
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host;
-    const url = `${protocol}//${host}/ws/ws/${gameId}/${playerId}`;
+    const wsBase = import.meta.env.VITE_WS_URL || `${protocol}//${window.location.host}`;
+    const url = `${wsBase}/ws/${gameId}/${playerId}`;
 
     const ws = new WebSocket(url)
     wsRef.current = ws
