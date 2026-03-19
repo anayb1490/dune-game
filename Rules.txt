@@ -1,0 +1,1465 @@
+================================================================================
+DUNE: A GAME OF CONQUEST, DIPLOMACY & BETRAYAL
+COMPLETE RULES REFERENCE
+Based on the Official Gale Force Nine (2019) Rulebook
+================================================================================
+
+TABLE OF CONTENTS
+-----------------
+1.  Overview & Theme
+2.  The Six Factions
+3.  Game Components
+4.  Setup for Play (Basic Game)
+5.  Object of the Game
+6.  Sequence of Play (All Nine Phases)
+    Phase 1:  Storm
+    Phase 2:  Spice Blow and Nexus
+    Phase 3:  CHOAM Charity
+    Phase 4:  Bidding
+    Phase 5:  Revival
+    Phase 6:  Shipment and Movement
+    Phase 7:  Battles
+    Phase 8:  Spice Collection
+    Phase 9:  Mentat Pause
+7.  Alliances (Nexus)
+8.  Secrecy and Bribery Rules
+9.  Advanced Game Rules
+    Advanced Combat
+    Double Spice Blow
+    Increased Spice Flow
+    Advanced Karama Cards
+10. Faction Player Sheets (All Six Factions)
+    Fremen
+    Harkonnen
+    Atreides
+    Bene Gesserit
+    Spacing Guild
+    Emperor
+11. Strategy Tips (General and Faction-Specific)
+12. Questions and Answers (Official Rulings)
+13. Optional Alliance Rules
+
+
+================================================================================
+1. OVERVIEW & THEME
+================================================================================
+
+Frank Herbert's classic science fiction novel Dune is the setting for this
+game of conquest, diplomacy, and betrayal. Players take on the roles of the
+major factions vying for control of the desert planet Arrakis — known
+universally as Dune.
+
+Dune is the only place in the galaxy where spice (melange) can be found.
+Spice is the key to interstellar travel: the Spacing Guild's Steersmen can
+only navigate hyperspace by ingesting it. Spice is also a geriatric medicine
+that prolongs life. With spice, one can buy whatever one wants. The entire
+economic structure of the Imperium is based upon it.
+
+Desert sandscapes cover most of Dune's surface, broken only by giant rock
+ridges. Giant sandworms (called Shai-Hulud by the Fremen) — up to a quarter
+mile in length — live beneath the sand and attack anyone who lingers on it.
+Terrifying coriolis storms can also ravage the surface.
+
+All players are subject to the economics of the CHOAM merchant combine.
+Resources are expensive, shipping is costly, excellence has a price — and
+that price must be paid in spice.
+
+The game is divided into a Basic Game and an Advanced Game. Players are
+encouraged to learn and play the Basic Game several times before attempting
+the Advanced Game.
+
+
+================================================================================
+2. THE SIX FACTIONS
+================================================================================
+
+ATREIDES
+--------
+Led by the youthful Paul Atreides (Muad'Dib) — rightful heir to the planet,
+gifted with valiant lieutenants and a strange partial awareness of the future,
+but beset by more powerful and treacherous opponents.
+
+BENE GESSERIT
+-------------
+Represented by Reverend Mother Gaius Helen Mohiam — ancient and inscrutable,
+carefully trained in psychological control and a genius at achieving her ends
+through the efforts of others.
+
+EMPEROR
+-------
+His majesty the Padishah Emperor Shaddam IV — keen and efficient, yet easily
+lulled into complacency by his own trappings of power.
+
+SPACING GUILD
+-------------
+Represented by steersman Edric (in league with smuggler bands) — monopolist
+of transport, yet addicted to ever-increasing spice flows.
+
+FREMEN
+------
+Represented by the planetary ecologist Liet-Kynes — commanding fierce hordes
+of natives, adept at life and travel on the planet, and dedicated to preventing
+any outside control while bringing about Dune's own natural regeneration.
+
+HARKONNEN
+---------
+Led by the decadent Baron Vladimir Harkonnen — master of treachery and cruel
+deeds.
+
+
+================================================================================
+3. GAME COMPONENTS
+================================================================================
+
+GAME BOARD
+----------
+The game board is a map of the planet Dune showing four types of territories:
+
+  - Sand:        Yellow or tan with a single border.
+  - Rock:        Brown with double borders.
+  - Strongholds: Red-brown with triple borders.
+  - Polar Sink:  Mottled white with a double border.
+
+Some territories are marked with a Spice Blow icon to show the locations of
+possible Spice Blows.
+
+The map is divided by longitude lines into eighteen sectors, which extend from
+the edge of the Polar Sink to the equator at the edge of the board. Sectors
+control the way the storm moves around the board.
+
+There are six player circles around the map to help determine play order. The
+map also includes a Turn Track and the Tleilaxu Tanks for holding dead leaders
+and forces awaiting revival.
+
+CARDS
+-----
+  - Spice Deck (21 cards): Tells where Spice Blows will create treasure troves
+    of spice, and when the giant sandworms (Shai-Hulud) will appear.
+  - Treachery Deck (33 cards): Provides weapons, defenses, tricks, and tools
+    to outmaneuver opponents and win battles.
+  - Traitor Deck (30 cards): One card for each Leader Disc; these are leaders
+    from other factions that a player has subverted.
+  - Alliance Deck (6 cards): Reminds players of their Alliance benefits.
+  - Storm Deck (16 cards): For use with Fremen advanced game advantages.
+  - Bene Gesserit Prediction Deck (6 faction cards + 10 turn cards): Used to
+    predict who will win the game and on which turn.
+
+TOKENS
+------
+  - 156 Spice Tokens (48 each of 1 and 2, 36 of 5, 24 of 10)
+  - Storm Marker
+  - Game Turn Counter
+  - Destroyed Shield Wall Token
+  - Sandworm Token (advanced Fremen use)
+  - Kwisatz Haderach Card and Counter tokens (advanced Atreides use)
+
+SIX PLAYER FACTION SETS
+------------------------
+Each faction set contains:
+  1. A Player Shield bearing the faction's main character and emblem.
+  2. A single- or double-sided Player Sheet describing the faction's Basic and
+     Advanced Game advantages.
+  3. Player Markers (Atreides: green; Bene Gesserit: blue; Emperor: red;
+     Fremen: sand; Spacing Guild: orange; Harkonnen: black).
+  4. 5 large Leader Discs, each showing a leader and their fighting strength.
+  5. 20 small tokens called forces. Starred forces have special significance
+     only in the Advanced Game.
+
+Special Force Notes:
+  - Emperor: 5 starred forces (Sardaukar) are worth twice their normal value
+    in battle against all opponents except Fremen.
+  - Fremen: 3 starred forces (Fedaykin) are worth twice their normal value
+    in battle and in taking losses.
+  - Bene Gesserit: Forces have two sides — the striped "advisor" side and the
+    plain "fighter" side.
+
+BATTLE WHEELS
+-------------
+The game includes 2 Battle Wheels, which must be assembled and joined with
+the center pin before play begins. These are used to secretly dial battle
+commitments.
+
+
+================================================================================
+4. SETUP FOR PLAY (BASIC GAME)
+================================================================================
+
+Step 1: SPICE BANK
+Place all spice tokens in the Spice Bank.
+
+Step 2: DECKS
+Shuffle the Spice Deck and Treachery Deck and place them face down next to the
+game board. Played cards are piled face up next to the decks as discards and
+reshuffled to restock decks as necessary.
+
+Step 3: FACTION SELECTION
+Players choose factions. Two methods:
+  (a) Shuffle the faction cards from the Prediction Deck and deal 1 to each
+      player at random, OR
+  (b) Each player randomly draws from the Bene Gesserit turn prediction cards
+      and selects a faction in order of drawn card (highest card chooses first).
+Players may swap factions with each other at this point.
+
+Step 4: POSITIONS
+Each player places their Player Marker on the player circle closest to their
+shield and seat at the table.
+
+Step 5: TRAITORS
+Remove the cards for factions not in play from the Traitor Deck. Shuffle
+thoroughly. Deal 4 cards to each player.
+  - Each player secretly selects 1 card to keep behind their shield.
+  - If a player drew any leaders from an opponent's faction, they may choose 1
+    to become their traitor.
+  - If a player drew no opponent leaders, they may protect one of their own
+    leaders.
+  - The other 3 cards are returned face down to the bottom of the Traitor Deck.
+
+Step 6: SPICE
+Each player receives spice from the Spice Bank in the amount indicated on their
+player sheet, placed behind their shield.
+
+Step 7: FORCES
+Each player places their forces on the board as indicated by their player sheet.
+All reserves are placed next to their shield (off-planet).
+
+Step 8: TREACHERY CARDS
+Deal 1 Treachery Card from the Treachery Deck to each player.
+
+Step 9: TURN MARKER
+Place the Turn Marker at position 1 on the Turn Track.
+
+IMPORTANT NOTE: A faction's special advantages always take precedence over
+the general rules whenever they contradict them.
+
+PLAYER COUNT VARIANTS
+---------------------
+  - 2 Players: Recommended Atreides vs. Harkonnen, or play 2 factions each.
+    Number of strongholds needed to win is increased to 4.
+  - 3 Players: Recommended Atreides, Harkonnen, and Fremen. An Alliance needs
+    4 strongholds to win (same as standard Alliance rules).
+  - 4 Players: Consider leaving out both Spacing Guild and Bene Gesserit.
+  - 5 Players: Consider playing with no Bene Gesserit.
+  - 6 Players: Standard game with all factions.
+
+
+================================================================================
+5. OBJECT OF THE GAME
+================================================================================
+
+Each faction has unique economic, military, strategic, or treacherous
+advantages. The object of the game is to use these advantages to gain control
+of Dune.
+
+The winner is the FIRST PLAYER to occupy at least 3 strongholds with at least
+one of their forces during the Mentat Pause Phase.
+
+A player may win ALONE or in an ALLIANCE with other players.
+
+The game runs a maximum of 10 turns. If no player has won after 10 turns,
+special faction victory conditions may apply (see Spacing Guild and Fremen
+faction sheets below).
+
+
+================================================================================
+6. SEQUENCE OF PLAY
+================================================================================
+
+DUNE is played in turns to a maximum of 10 turns. Each turn consists of nine
+phases that must be completed in the exact sequence listed below.
+
+
+------------------------------------------------------------------------
+PHASE 1: STORM
+------------------------------------------------------------------------
+
+The Storm Marker is moved around the map. The faction whose Player Marker the
+storm next approaches becomes the First Player for that turn.
+
+FIRST STORM (Turn 1 only):
+The Storm Marker is placed at a random starting location using the following
+procedure:
+  - The two players whose player circles are nearest on either side of the
+    Storm Start Sector each secretly dial a number from 0 to 20 on the Battle
+    Wheels.
+  - Both numbers are simultaneously revealed, totaled, and the Storm Marker is
+    moved from the Storm Start Sector counterclockwise around the map by that
+    total number of sectors.
+
+SUBSEQUENT STORM MOVEMENT:
+  - The two players who last used the Battle Wheels each independently dial a
+    number from 1 to 3.
+  - Both numbers are simultaneously revealed, added together.
+  - The Storm Marker advances counterclockwise from its current position by
+    the total number of sectors.
+
+STORM DAMAGE:
+  - Any forces in a sector of SAND TERRITORY (except the Imperial Basin) over
+    which the storm passes or stops are KILLED. These forces go to the Tleilaxu
+    Tanks.
+  - Forces NOT on a sand territory are protected from the storm.
+  - Any spice in a sector over which the storm passes or stops is removed to
+    the Spice Bank.
+
+STORM OBSTRUCTION:
+  - Forces may NOT move into, out of, or through a sector in storm.
+  - Forces may NOT battle if either force is in storm.
+
+FIRST PLAYER:
+  - The player whose Player Marker the storm next approaches is the First Player
+    in the Bidding Phase, Shipping Phase, and Movement Phase.
+
+
+------------------------------------------------------------------------
+PHASE 2: SPICE BLOW AND NEXUS
+------------------------------------------------------------------------
+
+Turn over the top card of the Spice Deck. There are two possible card types:
+
+TERRITORY CARD (Spice Blow):
+  - The amount of spice shown on the card is taken from the Spice Bank and
+    placed onto the territory in the sector containing the Spice Blow icon.
+  - The card is placed face up on the Spice Deck discard pile.
+  - If the Spice Blow icon is currently in storm, no spice is placed that turn.
+
+SHAI-HULUD CARD (Sandworm):
+  - All spice and forces in the territory shown on the card currently face up
+    on the discard pile are removed to the Spice Bank and Tleilaxu Tanks
+    respectively.
+  - The Shai-Hulud card is placed face up on the Spice Deck discard pile.
+  - Another card is turned over. If it is also Shai-Hulud, it is immediately
+    discarded and another card is turned over. This continues until a Territory
+    Card appears. Spice is placed as normal and that Territory Card goes to the
+    discard pile.
+  - Revealing a Shai-Hulud card after the first turn causes a NEXUS at the end
+    of the phase (see Alliances section).
+
+FIRST TURN EXCEPTION:
+  - During the first turn's Spice Blow Phase only, all sandworm cards turned
+    over are ignored and set aside, then reshuffled back into the Spice Deck
+    after this phase. No Nexus occurs on turn 1.
+
+
+------------------------------------------------------------------------
+PHASE 3: CHOAM CHARITY
+------------------------------------------------------------------------
+
+Any player with 0 or 1 spice may call out "CHOAM Charity" and collect spice
+to bring their total up to 2.
+
+
+------------------------------------------------------------------------
+PHASE 4: BIDDING
+------------------------------------------------------------------------
+
+Players bid spice to acquire Treachery Cards from the Treachery Deck.
+
+DECLARATION:
+Before bidding starts, all players must declare how many Treachery Cards they
+hold. The hand limit is 4 cards. Players with 4 cards must pass during all
+bidding.
+
+DEALING:
+One player deals cards from the Treachery Deck face down in a row, one card
+for each player who is allowed to bid (i.e., each player without a full hand).
+
+AUCTION:
+The first card in the row is auctioned off.
+  - Bidding begins with the First Player (or the next eligible player to the
+    right if the First Player has 4 cards).
+  - The first bidder must bid 1 or more spice, or pass.
+  - Bidding proceeds to the bidder's immediate right.
+  - Each subsequent bidder may raise the bid or pass.
+  - This continues until one player has the top bid and all others have passed.
+  - The winning bidder pays the bid amount into the Spice Bank and takes the
+    card.
+
+BID LIMIT: Players may not bid more spice than they currently have.
+
+ROTATING START:
+For each subsequent card, the next eligible player to the right of the player
+who opened the previous card's bidding begins the bidding. This ensures every
+eligible player gets a chance to open bidding on a card.
+
+END OF BIDDING:
+Bidding ends when:
+  (a) All cards have been auctioned off, OR
+  (b) A card is passed on by everyone — in which case all remaining cards are
+      returned to the top of the Treachery Deck and the phase ends.
+
+TRANSPARENCY:
+The NUMBER (not the type) of Treachery Cards each player holds must always be
+open to everyone during the Bidding Phase. No one may hide the count of their
+cards. A player with a full hand (4 cards) must pass on all bids.
+
+TIME LIMIT:
+Each player must bid within 10 seconds of the previous player or is assumed
+to have passed.
+
+
+------------------------------------------------------------------------
+PHASE 5: REVIVAL
+------------------------------------------------------------------------
+
+FORCE REVIVAL:
+All players may revive up to 3 forces from the Tleilaxu Tanks.
+  - FREE: A certain number of forces are revived for free (as stated on the
+    player sheet).
+  - BY SPICE: Additional forces beyond the free amount cost 2 spice per force,
+    paid to the Spice Bank.
+  - LIMIT: A player can never revive more than 3 forces per turn total
+    (free + paid combined).
+  - TO RESERVES: All revived forces must be placed in the player's off-planet
+    reserve, not directly onto the board.
+
+LEADER REVIVAL:
+  - A player may revive a leader only if ALL 5 of their leaders are currently
+    in the Tleilaxu Tanks.
+  - To revive a leader, the player pays that leader's fighting strength in
+    spice to the Spice Bank.
+  - One leader may be revived per turn under this condition.
+  - A revived leader can be played normally and is still subject to being a
+    traitor.
+  - If a revived leader is killed again, it is placed face down in the Tleilaxu
+    Tanks and cannot be revived again until all of the player's other revivable
+    leaders have been revived, killed, and returned to the Tanks.
+
+
+------------------------------------------------------------------------
+PHASE 6: SHIPMENT AND MOVEMENT
+------------------------------------------------------------------------
+
+Starting with the First Player and proceeding COUNTERCLOCKWISE, each player
+conducts their Force Shipment and then their Force Movement.
+
+--- FORCE SHIPMENT ---
+
+SHIPMENT OF RESERVES:
+A player with off-planet reserves may make ONE shipment of any number of forces
+from their reserves to any one territory on the map.
+
+PAYMENT:
+  - 1 spice per force shipped into any STRONGHOLD.
+  - 2 spice per force shipped into any OTHER TERRITORY.
+All shipment spice is paid to the Spice Bank (exception: paid to the Spacing
+Guild when that faction is in play — see Spacing Guild faction sheet).
+
+SECTORS:
+When shipping into a territory lying in several sectors, the player must declare
+in which sector they choose to leave their forces.
+
+SHIPMENT RESTRICTIONS:
+  - No player may ship into a sector in storm.
+  - No player may ship into a stronghold already occupied by forces of two
+    other factions.
+  - No player may ship forces FROM the board BACK to their reserves (one-way
+    only — exception: Spacing Guild).
+
+--- FORCE MOVEMENT ---
+
+BASIC MOVEMENT:
+Each player may move, as a group, any number of their forces from one territory
+into one other territory (one move total per turn).
+
+Forces are free to move into, out of, or through any territory occupied by any
+number of forces, subject to the restrictions below.
+
+ORNITHOPTER MOVEMENT (3-territory move):
+A player who begins their force move with one or more of their forces in either
+Arrakeen, Carthag, or both has access to ornithopters and may move forces
+through up to three adjacent territories.
+  - The forces being moved do NOT have to originate in Arrakeen or Carthag.
+  - Example: A player with forces in Arrakeen could move forces starting at
+    Tuek's Sietch through Pasty Mesa and Shield Wall to the Imperial Basin.
+
+STANDARD MOVEMENT (1-territory move):
+A player without any force in either Arrakeen or Carthag at the start of their
+move may only move forces to one adjacent territory.
+
+ONE FORCE MOVE PER TURN:
+Each player may make only one force move per turn.
+
+SECTORS AND MOVEMENT:
+Sectors have NO effect on movement. Forces can move into or through a territory
+ignoring all sector divisions. A sector's only function is to regulate storm
+movement/damage and spice collection.
+
+STORM MOVEMENT RESTRICTIONS:
+No force may move into, out of, or through a sector in storm.
+  - Many territories span several sectors, so a player may move into and out
+    of a territory partially in storm, so long as the group does not pass
+    through the storm sector.
+  - When ending a move in a territory lying in several sectors, the player must
+    declare which sector their forces occupy.
+  - The Polar Sink is NEVER in storm.
+
+STRONGHOLD BLOCKING:
+Forces cannot be moved into or through a stronghold if forces of two other
+factions are already there.
+
+
+------------------------------------------------------------------------
+PHASE 7: BATTLES
+------------------------------------------------------------------------
+
+BATTLE DETERMINATION:
+Wherever two or more factions' forces occupy the same territory, battles must
+occur. Battles continue until only one faction's forces (or no forces) remain
+in each territory on the map.
+
+EXCEPTIONS (no battle required):
+  - Two factions' forces in the same territory separated by a sector in storm
+    may not battle. Their forces may remain in the same territory.
+  - Forces in the Polar Sink never battle. It is a free haven for all factions.
+
+AGGRESSOR ORDER:
+The First Player is named the aggressor first. The aggressor chooses the order
+in which they wish to fight their battles. Then the player to their immediate
+right becomes the aggressor, and so on, until all battles are resolved.
+
+If three or more factions are in the same territory, the current aggressor picks
+who they fight first, second, etc., for as long as they survive.
+
+--- CREATING THE BATTLE PLAN ---
+
+To resolve a battle, each player secretly formulates a Battle Plan using a
+Battle Wheel. A Battle Plan always includes:
+  1. A number dialed on the Battle Wheel (from 0 up to the total number of
+     forces the player has in the disputed territory).
+  2. A leader (or cheap hero card), if possible.
+  3. Optionally, Treachery Cards (weapon, defense, or both).
+
+BATTLE WHEEL:
+Each player secretly dials a number from 0 to the number of forces they have
+in the disputed territory. BOTH players will lose the number of forces they
+dial, win or lose.
+
+LEADERS:
+  - Select one Leader Disc and place it face up in the slot on the wheel.
+  - A Cheap Hero Card may be played in lieu of a Leader Disc.
+  - A player MUST play either a leader or a cheap hero as part of their Battle
+    Plan if possible.
+  - If no leader or cheap hero is available, the player must announce that fact.
+  - Leaders who survive a battle may fight more than once in a single territory
+    if needed, but no leader may fight in more than one territory during the
+    same phase.
+
+NO LEADER SITUATION:
+A player with no leader or cheap hero must still battle, but may NOT play any
+Treachery Cards as part of their Battle Plan. (This can occur when all leaders
+are in the Tleilaxu Tanks and the player has no cheap hero.)
+
+CHEAP HERO:
+When a player plays a cheap hero, their total is simply the number of forces
+dialed, but they may still play weapon, defense, or worthless cards.
+
+TREACHERY CARDS:
+Players with a leader or cheap hero MAY play:
+  - A Weapon Treachery Card
+  - A Defense Treachery Card
+  - Both
+  - Neither
+Cards are held against the wheel secretly until both players reveal simultaneously.
+
+--- REVEALING AND RESOLVING ---
+
+REVEALING:
+When both players are ready, Battle Plans are revealed simultaneously.
+
+WINNER DETERMINATION:
+The winner is the player with the higher total of:
+  (number dialed on the Battle Wheel) + (leader's fighting strength)
+
+  - A leader killed by a weapon card does NOT count toward the total.
+
+TIES:
+In the case of a tie, the AGGRESSOR wins.
+
+WEAPONS:
+  - If a player's opponent played a Weapon Treachery Card and the player did
+    NOT play the proper Defense Treachery Card against it, the player's leader
+    is KILLED and does not count toward their total.
+  - Both leaders can be killed simultaneously if both weapon/defense
+    combinations match/fail.
+
+KILLED LEADERS:
+  - Any leaders killed are immediately placed face up in the Tleilaxu Tanks.
+  - The WINNER immediately receives the killed leaders' fighting strength value
+    (including their own killed leader if applicable) in spice from the Spice Bank.
+
+SURVIVING LEADERS:
+Leaders who survive remain in the territory until all battles in other
+territories are resolved. Then their owners retrieve them.
+
+LOSER'S CONSEQUENCES:
+  - Loses ALL forces they had in the territory to the Tleilaxu Tanks.
+  - Must discard every Treachery Card used in their Battle Plan.
+  - Does NOT lose their leader as a result of losing (leaders are only killed
+    by Weapon Treachery Cards).
+
+WINNER'S CONSEQUENCES:
+  - Loses only the number of forces they DIALED on the Battle Wheel (these go
+    to the Tleilaxu Tanks).
+  - May keep or discard any Treachery Cards they played.
+  - Receives spice for any killed leaders (own or opponent's).
+
+--- TRAITORS ---
+
+If a player is in a battle and their opponent uses a leader that matches a
+Traitor Card that player controls, they may call out "Treachery!" and pause
+the game.
+
+REVEALING THE TRAITOR:
+The Traitor Card is revealed. Then:
+
+The player who revealed the Traitor Card:
+  - Immediately wins the battle.
+  - Loses nothing, regardless of what was played in the Battle Plans (even if
+    a lasgun and shield were revealed).
+  - Places the traitorous leader in the Tleilaxu Tanks and receives that
+    leader's fighting strength in spice from the Spice Bank.
+
+The player whose traitor was revealed:
+  - Loses all of their forces in the territory.
+  - Discards all cards they played.
+
+TWO TRAITORS:
+If both leaders are traitors for the opposing player, BOTH players lose all
+their forces in the territory, all cards played, and both leaders. Neither
+player receives any spice.
+
+OPTIONAL: A player MAY voluntarily choose not to reveal a traitor if it is
+played against them in battle.
+
+
+------------------------------------------------------------------------
+PHASE 8: SPICE COLLECTION
+------------------------------------------------------------------------
+
+Any player with forces in a sector of a territory containing spice may now
+collect that spice.
+
+COLLECTION RATES:
+  - 3 spice per force if the player occupies Carthag or Arrakeen.
+  - 2 spice per force if the player does NOT occupy Carthag or Arrakeen.
+
+Spice tokens are taken from the territory and placed behind the player's shield.
+
+Uncollected spice remains in place for future turns.
+
+
+------------------------------------------------------------------------
+PHASE 9: MENTAT PAUSE
+------------------------------------------------------------------------
+
+WIN CHECK:
+  - If a player occupies 3 strongholds with at least one of their forces,
+    that player wins the game ALONE.
+  - If two allied players together occupy a total of 4 strongholds (when the
+    4-stronghold alliance victory condition applies) with at least one of their
+    forces each, that Alliance wins the game.
+
+NO WINNER:
+If no one wins, players evaluate their positions, then advance the Turn Marker
+to the next position on the Turn Track to begin the next turn.
+
+If the Turn Marker reaches 10 and no one has won, the Spacing Guild Special
+Victory Condition applies (see Spacing Guild sheet). If the Spacing Guild is
+not in play, the Fremen Special Victory Condition applies (see Fremen sheet).
+If neither condition is met, the player occupying the most strongholds wins.
+If several players qualify equally, all of them win.
+
+
+================================================================================
+7. ALLIANCES (NEXUS)
+================================================================================
+
+A NEXUS is triggered when a Shai-Hulud (sandworm) card is turned over during
+the Spice Blow and Nexus Phase on the SECOND TURN OR LATER. (Sandworm cards
+on turn 1 are ignored and cause no Nexus.)
+
+During a Nexus, all players have a chance to make, join, or break Alliances.
+Once players have had a chance to do so, play continues.
+
+FORMING AN ALLIANCE
+-------------------
+  - No more than TWO players may be in a single Alliance.
+  - With an Alliance active, the win condition becomes 4 strongholds (instead
+    of 3) held collectively.
+  - Players may discuss the advantages and disadvantages of allying before
+    committing.
+  - Alliance membership must be PUBLIC — Alliances cannot be secret. Players
+    swap Alliance Cards as a reminder.
+  - Multiple Alliances can be formed during a single Nexus, but no player can
+    be in more than one Alliance.
+  - Once all players have had a chance to ally, no further Alliances can be
+    made until the next Nexus.
+
+BREAKING AN ALLIANCE
+--------------------
+  - Any player may break an Alliance during a Nexus by simply announcing it.
+  - Players who break from an Alliance may immediately join or form a new
+    Alliance during that same Nexus.
+
+HOW AN ALLIANCE FUNCTIONS
+--------------------------
+WINNING: Allied players' forces are considered collectively for victory
+purposes. If together they hold 4 strongholds (one or more forces each) during
+the Mentat Pause Phase, that Alliance wins.
+
+CONSTRAINT: Allies may NOT enter any territory (except the Polar Sink) where
+one of their allies already has a force. Allies may NEVER battle one another.
+
+ALLY SECRECY: Allies may discuss strategy and share information secretly at
+any time.
+
+BIDDING: During the Bidding Phase, allies may help pay for each other's
+Treachery Cards, allowing a player to bid more spice than they actually have.
+
+MOVEMENT: During the Movement Phase, allies may pay for each other's shipments.
+
+SHARED ADVANTAGES: Allies may assist one another as specified on their
+individual player sheets (faction-specific benefits vary).
+
+IMPORTANT NOTE: If two allied factions occupy the same territory at the start
+of the next turn (having allied during the previous turn), one must move out
+during the Shipment and Movement Phase. If the first faction to move does not
+move out, the second faction must move out — or lose those forces to the
+Tleilaxu Tanks.
+
+
+================================================================================
+8. SECRECY AND BRIBERY RULES
+================================================================================
+
+SECRECY:
+Players are never REQUIRED to keep their cards, spice holdings, or traitor
+selection secret. They are never OBLIGATED to reveal this information either.
+
+  - Spice holdings should be kept behind the Player Shield.
+  - The number (not type) of Treachery Cards held must be open during Bidding
+    but can be kept secret at all other times.
+
+BRIBERY AND DEALS:
+Players who are NOT members of the same Alliance may make verbal deals or
+bribes between one another.
+  - Once made, deals and bribes must be stated aloud and MUST be honored.
+  - A player cannot renege on a deal or bribe.
+  - Spice may be part of a deal or bribe.
+
+DEAL RESTRICTIONS:
+A deal or bribe CANNOT involve the transfer or gift of:
+  - Treachery Cards
+  - Leaders
+  - Forces
+  - Faction advantages
+
+This leaves secret information, future actions, and spice as valid deal
+components.
+
+A player cannot make a deal that would contravene the rules or their own
+faction powers. These are the only limitations.
+
+
+================================================================================
+9. ADVANCED GAME RULES
+================================================================================
+
+The Basic Game is changed by:
+  - Increasing the number of Spice Blows (Double Spice Blow)
+  - Adding a spice income advantage for holding city strongholds and Tuek's
+    Sietch (Increased Spice Flow)
+  - Enhanced Karama Card powers (Advanced Karama Cards)
+  - An advanced combat system with spice-supported forces (Advanced Combat)
+
+
+------------------------------------------------------------------------
+ADVANCED COMBAT
+------------------------------------------------------------------------
+
+Spice now plays a direct role in combat:
+
+  - Each force used in battle is valued at its FULL strength if 1 spice is
+    expended to support it.
+  - A force NOT supported by 1 spice is valued at HALF strength.
+
+When creating a Battle Plan, a player must add the amount of spice they plan to
+expend to their Battle Wheel along with their force count.
+
+  - If a traitor is revealed, the winner does NOT have to expend any spice.
+  - Otherwise, spice used in the Battle Plan must go to the Spice Bank,
+    win or lose.
+
+HALF-STRENGTH INCREMENTS:
+Half-strength can be indicated on the Battle Wheel by aligning the line between
+numbers with the line under the window.
+
+TAKING LOSSES:
+The winner may take their losses in any manner as long as the total agrees with
+the strength dialed and the spice expended.
+
+Example: The Emperor has 1 Sardaukar (worth 2 forces) and 5 ordinary forces.
+The Emperor dials a strength of 3 and expends 1 spice. When taking losses, the
+Emperor may choose:
+  - Lose 1 Sardaukar at full strength (2) + 2 ordinary forces at half strength
+    (0.5 + 0.5 = 1), total = 3.
+  - Lose 1 ordinary force at full strength (1) + 4 ordinary forces at half
+    strength (4 x 0.5 = 2), total = 3.
+
+FREMEN EXCEPTION: Fremen forces do NOT require spice to count at full strength.
+
+
+------------------------------------------------------------------------
+DOUBLE SPICE BLOW (Advanced Phase 2)
+------------------------------------------------------------------------
+
+In the Advanced Game, Phase 2 reveals TWO Spice Cards instead of one, using
+two separate discard piles (A and B).
+
+PROCEDURE:
+Reveal the first Spice Card:
+  - If TERRITORY: Place spice normally, put card on discard pile A.
+  - If SHAI-HULUD: Process the sandworm as in the Basic Game (using discard
+    pile A), then continue turning cards until a Territory Card appears. A Nexus
+    occurs.
+
+Then reveal the second Spice Card and repeat the same procedure using discard
+pile B.
+
+
+------------------------------------------------------------------------
+INCREASED SPICE FLOW (Advanced Collection)
+------------------------------------------------------------------------
+
+During every Spice Collection Phase (Phase 8), city and smuggler stronghold
+holders collect spice automatically:
+  - Each occupant of CARTHAG collects 2 spice.
+  - Each occupant of ARRAKEEN collects 2 spice.
+  - The occupant of TUEK'S SIETCH collects 1 spice.
+
+To qualify, a player needs only occupy the stronghold at the time of collection.
+If a player occupies two of these strongholds, they collect for each.
+
+
+------------------------------------------------------------------------
+ADVANCED KARAMA CARDS
+------------------------------------------------------------------------
+
+In the Advanced Game, when playing a Karama Card a player may EITHER:
+  (a) Prevent one opponent from using one of their faction's advantages (as in
+      the Basic Game), OR
+  (b) Use their faction's unique one-time Karama special power (listed below).
+
+After play, the Karama Card is discarded.
+
+FACTION KARAMA POWERS:
+  - Atreides: Look at any one player's entire Battle Plan.
+  - Emperor: Revive up to three forces or one leader for free.
+  - Fremen: Place the sandworm token in any sand territory. It is treated as a
+    normal sandworm (does NOT signal a Nexus).
+  - Spacing Guild: Stop one off-planet shipment of any one player.
+  - Harkonnen: Take without looking any number of cards (up to the entire hand)
+    from any one player. For each card taken, give that player one of your own
+    cards in return.
+  - Bene Gesserit: No unique Karama power listed (they may use any worthless
+    card as a Karama Card).
+
+NOTE: A Karama Card can be used to stop a player from using an advanced
+advantage. The Fremen Karama sandworm does NOT signal a Nexus; only a
+Shai-Hulud card from the Spice Deck does.
+
+
+================================================================================
+10. FACTION PLAYER SHEETS
+================================================================================
+
+------------------------------------------------------------------------
+FREMEN
+------------------------------------------------------------------------
+
+You are native to Dune and know its ways.
+
+STARTING POSITION:
+  - 10 forces distributed as you like among: Sietch Tabr, False Wall South,
+    and False Wall West.
+  - 10 forces in reserves (on the far side of Dune / off-planet).
+  - Start with 3 spice.
+  - Free Revival: 3 forces per turn. You CANNOT buy additional revivals.
+
+BASIC ADVANTAGES:
+
+SHIPMENT: During shipment, you may bring any or all of your reserves for FREE
+onto the Great Flat, or onto any one territory within two territories of the
+Great Flat (subject to storm and occupancy rules). Do NOT count the Great Flat
+itself when counting the two-territory range.
+
+MOVEMENT: During movement, you may move your forces TWO territories instead
+of one.
+
+SHAI-HULUD PROTECTION: If Shai-Hulud appears in a territory where you have
+forces, those forces are NOT devoured. Upon conclusion of the Nexus, you may
+ride the sandworm and move some or all of the forces in that territory to any
+territory (subject to storm and occupancy rules). Forces in the destination
+territory are not devoured either. If Shai-Hulud appears again while you still
+have forces in the original territory, you may do this again. Note: The
+sandworm move occurs in the Spice Blow Phase after the Nexus, and does NOT
+count as your one force move in the Movement Phase.
+
+FREMEN SPECIAL VICTORY CONDITION: If no faction has won by the end of the
+last turn (turn 10), AND if you (or no one) occupies Sietch Tabr and Habbanya
+Sietch, AND neither Harkonnen, Atreides, nor Emperor occupies Tuek's Sietch —
+your plans to alter Dune have succeeded and you (and any allies) win the game.
+
+ALLIANCE BENEFIT: You may choose to protect (or not protect) your allies from
+being devoured by sandworms. At your discretion, you may allow allied forces
+to revive 3 forces for free during Revival. Your allies also win with you if you
+win via the Fremen Special Victory Condition.
+
+ADVANCED GAME ADVANTAGES:
+
+STORM RULE: On the first turn, move the Storm Marker normally using Battle
+Wheels. On all subsequent turns, you control storm movement using Storm Cards:
+  - Randomly select a card from the Storm Deck, secretly look at it, and place
+    it face down on the margin of the game board.
+  - In the next Storm Phase, reveal that card's number. Move the storm
+    counterclockwise that many sectors. Return the card to the Storm Deck,
+    shuffle, and draw another card for the following turn.
+
+SANDWORMS: During a Spice Blow, all additional sandworms that appear AFTER the
+first can be placed by you in any sand territory you wish. Any forces there
+(except yours) are devoured.
+
+STORM LOSSES: If your forces are caught in a storm, only HALF are killed
+(fractions rounded up). You may also bring reserves into a storm at half loss.
+
+FEDAYKIN: Your three starred forces (Fedaykin) are worth TWO normal forces in
+battle and in taking losses. They are each treated as ONE force for revival
+purposes. Only one Fedaykin can be revived per turn.
+
+BATTLES (Advanced): Your forces do NOT require spice to count at full strength.
+
+
+------------------------------------------------------------------------
+HARKONNEN
+------------------------------------------------------------------------
+
+You excel in treachery.
+
+STARTING POSITION:
+  - 10 forces in Carthag.
+  - 10 forces in reserve (off-planet).
+  - Start with 10 spice.
+  - Free Revival: 2 forces per turn.
+
+BASIC ADVANTAGES:
+
+TRAITORS: At the start of the game, when you draw 4 Traitor Cards, you KEEP
+ALL FOUR (including your own faction's leaders). Any leader card of another
+faction may be revealed as a traitor.
+
+TREACHERY CARDS: You may hold up to 8 Treachery Cards (not 4). When you have
+8 cards, you must pass during bidding.
+  - At the start of the game, you are dealt 2 Treachery Cards instead of 1.
+  - Every time you purchase a Treachery Card, you receive an EXTRA card for
+    free from the Treachery Deck (unless you are at 7 cards, since you can
+    never exceed 8).
+  - Traitor Cards you hold may be used against your ally's opponents (if in
+    an Alliance).
+
+ALLIANCE BENEFIT: Traitor Cards you hold may be used against your ally's
+opponent.
+
+ADVANCED GAME ADVANTAGE:
+
+CAPTURED LEADERS: Every time you WIN a battle, you may either:
+  (a) Randomly select 1 leader from the loser (including the leader used in
+      the battle if not killed, but excluding leaders already used elsewhere
+      that turn) and place that Leader Disc face down into the Tleilaxu Tanks
+      to gain 2 spice from the Spice Bank, OR
+  (b) Keep the leader and use it once in a battle. After use, if it was not
+      killed, you must return it to its faction.
+
+When all of your own leaders have been killed, you must return all captured
+leaders to their factions immediately. Killed captured leaders go to the
+Tleilaxu Tanks (from which the leader's owning faction can revive them, subject
+to revival rules). A captured leader used in battle may be claimed as a traitor.
+
+
+------------------------------------------------------------------------
+ATREIDES
+------------------------------------------------------------------------
+
+You have limited prescience.
+
+STARTING POSITION:
+  - 10 forces in Arrakeen.
+  - 10 forces in reserves (off-planet).
+  - Start with 10 spice.
+  - Free Revival: 2 forces per turn.
+  - You place the Treachery Deck and Spice Deck near your player position. You
+    manage (shuffle, deal from) these decks.
+
+BASIC ADVANTAGES:
+
+BIDDING: During the Bidding Phase, you may look at each Treachery Card as it
+comes up for purchase BEFORE any faction bids on it. You (and only you) may
+keep written records about cards.
+
+MOVEMENT: At the start of the Movement Phase, before anyone moves, you may
+look at the TOP CARD of the Spice Deck.
+
+BATTLE: During the Battle Phase, you may force your opponent to reveal your
+choice of ONE of the four elements they plan to use in their Battle Plan against
+you: the leader, the weapon, the defense, or the number dialed.
+  - If you ask about a weapon or defense and your opponent tells you they are
+    not playing that element, you may NOT then ask to see a different element.
+
+ALLIANCE BENEFIT: You may assist your allies by forcing their opponent to
+reveal one element of their Battle Plan.
+
+ADVANCED GAME ADVANTAGE:
+
+KWISATZ HADERACH: The Kwisatz Haderach card starts INACTIVE and may not be
+used. Use the card and counter token to secretly track force losses. Once you
+have lost 7 or more forces (cumulative across battles), the Kwisatz Haderach
+becomes ACTIVE for the rest of the game:
+  - It cannot be used alone in battle, but may add +2 strength to leaders or
+    cheap heroes in ONE territory per turn.
+  - If the leader or cheap hero is killed, the Kwisatz Haderach has no effect
+    in that battle.
+  - A leader accompanied by the Kwisatz Haderach CANNOT turn traitor.
+  - The Kwisatz Haderach can only be killed by a lasgun/shield explosion. If
+    killed, it must be revived like any other leader.
+  - Alive or dead, the Kwisatz Haderach has no effect on the rule governing
+    revival of Atreides leaders.
+
+
+------------------------------------------------------------------------
+BENE GESSERIT
+------------------------------------------------------------------------
+
+You are adept in the ways of mind control.
+
+STARTING POSITION:
+  - 1 force in the Polar Sink, and 19 forces in reserves (off-planet).
+  - Start with 5 spice.
+  - Free Revival: 1 force per turn.
+
+START OF GAME PLACEMENT: After the Fremen placement (if Fremen are in the
+game), you start with one peaceful ADVISOR in any territory of your choice.
+If you are alone in that territory, flip the advisor to a fighter.
+
+BASIC ADVANTAGES:
+
+PREDICTION: After step 1 (Positions) in Setup, you secretly predict WHEN one
+other faction will win by placing a turn number card and a faction card from
+your prediction cards face down behind your Player Shield. Unused prediction
+cards go face down back in the box.
+  - If the faction you predicted wins (alone or as an ally, even YOUR ally) in
+    EXACTLY the turn you predicted, reveal your prediction and WIN ALONE
+    (overriding all other results).
+  - You also can win normally (by holding 3 strongholds).
+  - You CANNOT predict that the Spacing Guild or Fremen will win via their
+    special victory conditions.
+
+SPIRITUAL ADVISORS (Basic): Whenever any other faction ships forces onto Dune
+from off-planet, you may ship 1 force for FREE from your reserves into the
+Polar Sink.
+
+VOICE: In battle, you may command your opponent to comply with one instruction
+regarding one of the cards in their Battle Plan. For example, you may command
+them to play or not play a specific weapon (poison weapon, projectile weapon,
+or lasgun), defense (snooper or shield), worthless card, or cheap hero. If your
+opponent cannot comply with your command, they may do as they wish.
+
+CHARITY: You ALWAYS receive CHOAM Charity of 2 spice regardless of how many
+spice you already have.
+
+KARAMA: You may use any WORTHLESS CARD as if it were a Karama Card.
+
+ADVANCED GAME ADVANTAGES:
+
+ADVISORS (Advanced): Whenever any other faction ships forces to Dune from
+off-planet, you may ship for free ONE ADVISOR from your reserves into that
+SAME TERRITORY (instead of the Polar Sink). Advisors in that territory cannot
+flip to fighters during that turn unless no other forces exist there.
+
+ADVISOR RULES:
+  - Advisors coexist peacefully with other faction forces. They have NO effect
+    on other factions whatsoever.
+  - Advisors CANNOT: collect spice, be involved in combat, prevent another
+    faction's control of a stronghold, prevent another faction from challenging
+    a stronghold, use ornithopters, or play Family Atomics.
+  - Advisors ARE susceptible to: storms, sandworms, lasgun/shield explosions,
+    and atomics.
+
+FIGHTERS:
+  - When you ship forces into an unoccupied territory, you must ship as FIGHTERS.
+  - If you MOVE advisors into an unoccupied territory, you must flip them to
+    fighters.
+  - If you move advisors into an occupied territory, they may remain as advisors
+    or flip to fighters (your choice).
+
+INTRUSION: When another faction ships or moves into a territory where you have
+fighters, you may flip those fighters to advisors.
+
+BATTLE (Advanced): On each turn, after the Spice Blow and Nexus Phase and
+BEFORE any shipment, in all territories where you have advisors and wish to
+battle — announce this and flip all those advisors to fighters.
+
+ALLIANCE BENEFIT: You may Voice an ally's opponent (in addition to voicing
+your own opponent).
+
+
+------------------------------------------------------------------------
+SPACING GUILD
+------------------------------------------------------------------------
+
+You control all shipment onto and off Dune.
+
+STARTING POSITION:
+  - 5 forces in Tuek's Sietch.
+  - 15 forces in reserve (off-planet).
+  - Start with 5 spice.
+  - Free Revival: 1 force per turn.
+
+BASIC ADVANTAGES:
+
+PAYMENT FOR SHIPMENT: When other factions ship forces onto Dune from their
+off-planet reserves, they pay the spice to YOU instead of to the Spice Bank.
+
+THREE TYPES OF SHIPMENT: Each turn, you may make ONE of three types of
+shipments:
+  (a) Ship normally from off-planet reserves to Dune.
+  (b) Ship any number of forces from any one territory to any other territory
+      on the board (cross-shipment).
+  (c) Ship any number of forces from any one territory back to your reserves.
+
+HALF PRICE: You pay only HALF the normal shipment fee for your own forces.
+  - You pay 1 spice for every 2 of your forces shipped back to reserves
+    (fractional costs are rounded UP).
+
+SPACING GUILD SPECIAL VICTORY CONDITION: If no faction has won the game by
+the end of play (turn 10), you have prevented control of Dune and automatically
+WIN the game.
+
+ALLIANCE BENEFIT: Allies may ship from off-planet reserves to Dune, OR
+cross-ship from one territory to another (with forces already on Dune) at the
+Spacing Guild half-price rate. Allies also win with you if you win via the
+Spacing Guild Special Victory Condition.
+
+ADVANCED GAME ADVANTAGE:
+
+SHIP AND MOVE WHEN YOU WISH: You may take your shipment and move action OUT
+OF TURN. You may go first, last, or in between other players' turns — however
+you wish. You do NOT have to reveal when you intend to move until the moment
+you take your action. The other factions must move in the proper sequence.
+
+
+------------------------------------------------------------------------
+EMPEROR
+------------------------------------------------------------------------
+
+You have access to great wealth.
+
+STARTING POSITION:
+  - 20 forces in reserves (off-planet).
+  - Start with 10 spice.
+  - Free Revival: 1 force per turn.
+
+BASIC ADVANTAGE:
+
+BIDDING: Whenever any other faction pays spice for a Treachery Card, they pay
+it to YOU instead of to the Spice Bank. You may not discount the price of
+Treachery Cards; the full price must be paid.
+
+ALLIANCE BENEFIT: You may share your great wealth with your allies, as well as
+pay spice directly to the bank for the revival of up to 3 extra allied forces
+(for a possible total of 6 during each Revival Phase) from the Tleilaxu Tanks.
+
+ADVANCED GAME ADVANTAGE:
+
+SARDAUKAR: Your five starred forces (Sardaukar) have a special fighting
+capability.
+  - Sardaukar are worth TWO normal forces in battle and in taking losses against
+    all opponents EXCEPT Fremen.
+  - Against Fremen, Sardaukar are worth just ONE force.
+  - Sardaukar are treated as ONE force for revival purposes.
+  - Only ONE Sardaukar can be revived per turn.
+
+
+================================================================================
+11. STRATEGY TIPS
+================================================================================
+
+GENERAL STRATEGY
+----------------
+
+Players in DUNE must:
+  1. Amass spice.
+  2. Convert it to effective weaponry, defenses, and strategic aids.
+  3. Position forces to suddenly move into key strongholds and defend them.
+
+The game is won by daring, strategy, mobility, and treachery.
+
+THE STORM: Determines who is First Player. Being First Player is an advantage
+in battles (ties go to First Player). Being LAST is an advantage in movement
+(surprise takeovers by the last player cannot be countered that turn).
+
+THE SPICE BLOW: Its location determines who gets new spice. Sandworms are
+vital because they are the only way alliances can form during the diplomatic
+Nexus.
+
+BIDDING: Determines who gains fighting strength. Wise players keep several
+cards to keep opponents guessing, while retaining enough spice to ship more
+forces.
+
+MOVEMENT: Determines battles, spice collection, and often the win. Stay within
+striking distance of several strongholds. The Polar Sink is ideal for mobile
+forces — it connects to most territories by short routes and is unaffected by
+sandworms or storms. A player who moves last may go for the win if earlier
+players left strongholds unprotected.
+
+BATTLES: The key test of strength. With good weapons and defenses, a player can
+swiftly reverse the balance. Watch what weapons and defenses have been played
+and retained. Remember which leaders are known traitors. The loser must discard
+their cards; the winner may keep theirs and collect spice for killed leaders.
+
+WORTHLESS CARDS: Worthless cards can only be discarded by playing them in
+battle. Players often sacrifice a single force against a large force just to
+discard worthless cards, which can confuse opponents into wasting their own
+forces on unnecessary defense.
+
+ALLIANCES: Usually force an end to the game within a few turns. In larger
+games it is difficult to win alone. Ally with someone who complements your
+advantages — if you are strong strategically but short on resources, seek a
+spice-rich ally; if you are rich, look for strategy or treachery in a partner.
+
+FACTION-SPECIFIC STRATEGY TIPS
+-------------------------------
+
+FREMEN:
+Your major handicap is poverty. You usually cannot purchase Treachery Cards for
+several early turns because others outbid you. Be patient. Move forces into
+vacant strongholds, avoiding battles until prepared. When you do battle, dial
+high and sacrifice forces freely — your revival rate is high and revival is free.
+Your game plan: bide your time, wait for accessible Spice Blows no one else
+wants, build resources, then strike.
+
+SPACING GUILD:
+Your major handicap is your weak leaders and slow revival. You are vulnerable
+early and should make stronger moves after building resources. Your major
+advantage is cheap and flexible shipment — use this for surprise moves,
+especially when moving last. If the game is out of reach, consider suicide
+battles against strong players to weaken them and prevent a win until round 10,
+which you automatically win.
+
+BENE GESSERIT:
+Your major handicap is your low revival rate — do not let large numbers of
+forces go to the Tleilaxu Tanks. Your strength is the ability to win by
+correctly predicting another player's win turn, secretly working for that
+outcome. Voice makes you effective in battles. Bide your time while subtly
+influencing the game.
+
+ATREIDES:
+Your handicap is that you must both purchase cards AND ship onto Dune, with no
+income source other than surface spice — keeping you in constant battles. You
+start with Arrakeen and thus ornithopter access from turn 1; protect this.
+Your prescience gives you slight advantages in Spice Blow anticipation and in
+Battle Plans.
+
+EMPEROR:
+Your handicap is that all forces start off-planet and must be shipped in,
+often requiring a battle before you are ready. Your income from bidding means
+you will rarely need spice badly — the bidding phase keeps you supplied. Expect
+to concentrate on city strongholds for the movement advantage they provide.
+
+HARKONNEN:
+Your handicap is obtaining spice. You are at your relative greatest strength at
+the start. Capitalize by quickly buying as many Treachery Cards as possible,
+then surge into battle. Since you get 2 cards for every 1 you bid for, you can
+afford to bid slightly higher — but do not spend so lavishly that you cannot
+ship forces or buy cards later. Use your large card hand to flush out the
+traitors you control.
+
+
+================================================================================
+12. QUESTIONS AND ANSWERS (OFFICIAL RULINGS)
+================================================================================
+
+TREACHERY CARDS
+
+Q: Does the Family Atomics card have an immediate effect if blown when the
+   Storm Marker is over Arrakeen, Imperial Basin, or Carthag?
+A: The sector the storm currently occupies is never affected. All appropriate
+   sectors into which the storm subsequently moves will be affected.
+
+Q: Can the Family Atomics card be used if the Shield Wall or the adjacent
+   territory is in storm?
+A: Yes, in both cases.
+
+Q: Does a lasgun/shield explosion destroy spice in the territory?
+A: Yes. All forces in the territory are also lost, including those of players
+   not involved in the battle.
+
+Q: If a Karama Card prevents the Atreides from looking at Treachery Cards, does
+   it affect just one card or all cards up for bid?
+A: All cards up for bid that turn.
+
+Q: Can a Tleilaxu Ghola card allow a leader to fight in the same phase they
+   were killed?
+A: Yes. A leader revived by this card during a Battle Phase can be used in that
+   same Battle Phase.
+
+Q: Is the Tleilaxu Ghola 5-force revival free?
+A: Yes.
+
+Q: (Advanced) Can a Karama Card be used to stop a player from using an advanced
+   advantage?
+A: Yes.
+
+Q: (Advanced) Does the Karama sandworm called by the Fremen signal a Nexus?
+A: No. A Nexus is signaled only by a Shai-Hulud card drawn from the Spice Deck.
+
+REVIVAL
+
+Q: Are revived leaders still subject to turning traitor?
+A: Yes. Once a leader is a traitor, they are always a traitor for the entire
+   game, even if revived.
+
+Q: (Advanced) Can players revive leaders if other leaders have been captured
+   by the Harkonnens?
+A: Yes. A player can begin reviving their own leaders if they have no leaders
+   available to play in battle (this includes Harkonnen too).
+
+MOVEMENT
+
+Q: When the Fremen bring reinforcements, must they include the Great Flat when
+   counting the two-territory range?
+A: No. Never include the Great Flat itself when counting the two-territory range.
+
+Q: Is shipping into Arrakeen or Carthag and then using ornithopters allowed?
+A: Yes. The designers have always allowed this. A fighting force can be shipped
+   into Carthag or Arrakeen, and then use ornithopters to move other forces
+   through up to three territories anywhere on the board.
+
+Q: Can forces that moved into different sectors of the same territory at
+   different times move or ship as a single group?
+A: Yes.
+
+Q: Does a sandworm move (Fremen riding Shai-Hulud) count as the Fremen's one
+   group move per turn?
+A: No. The sandworm move is made in the Spice Blow Phase after the Nexus, not
+   in the Movement Phase.
+
+Q: Do sectors affect movement?
+A: No. Sectors function only to regulate storm movement/effect and spice
+   placement/collection. They do not restrict movement between territories.
+
+Q: If a storm is over Arrakeen or Carthag, does it affect the three-territory
+   (ornithopter) move?
+A: No, except of course that no forces may move into, out of, or through the
+   storm itself.
+
+Q: If the storm separates two factions in Pasty Mesa and on the next turn they
+   can ally (Nexus occurs), and they do ally — how do they resolve the shared
+   territory problem?
+A: Yes, they can ally. If the First Player who ships and moves does not move
+   forces out of that jointly occupied territory, the second player must do so —
+   or lose those forces to the Tleilaxu Tanks.
+
+BATTLE
+
+Q: Can a player substitute a cheap hero for a weapon or defense card?
+A: No. A cheap hero may only be played as a substitute for a leader.
+
+Q: May the same weapon or defense card be played in more than one battle, if
+   victorious?
+A: Yes, including more than one battle in the same phase.
+
+Q: Must forces that moved into different sectors of the same territory fight
+   as a single group?
+A: Yes (if storm permits).
+
+Q: What happens if Bene Gesserit Voice, Atreides Prescience, and Truthtrance
+   are all used in the same battle?
+A: Bene Gesserit Voice must be used BEFORE Atreides Prescience. Truthtrance
+   can be played at any time in this interaction. A player retains the ability
+   to alter elements of their Battle Plan that were not affected by Voice,
+   Prescience, or Truthtrance.
+
+Q: Can a player voluntarily refuse to reveal a traitor played against them?
+A: Yes. If your traitor appears in battle against you, you need not reveal it.
+
+MISCELLANEOUS
+
+Q: Do allies pay the Spacing Guild for all of their shipments?
+A: Yes.
+
+Q: What is the exact rate for Spacing Guild shipment back to reserves?
+A: 1 spice per 2 forces (fractional costs rounded up).
+
+Q: What happens if at the end of the last turn, no one has won and the Spacing
+   Guild is not in play?
+A: The Fremen win. If Fremen are also not in play, the player occupying the
+   most strongholds wins. If several players qualify equally, all of them win.
+
+Q: (Advanced) When reshuffling the Spice Deck, must you reshuffle the entire
+   deck?
+A: Yes.
+
+Q: (Advanced) Does the Fremen get the sandworm advantage if a second sandworm
+   appears in a Spice Phase?
+A: Yes.
+
+Q: How does the Spacing Guild pay for an odd number of forces shipped to
+   reserves?
+A: All fractional costs are rounded UP. A 5-force shipment costs 3 spice; a
+   1-force shipment costs 1 spice; etc.
+
+
+================================================================================
+13. OPTIONAL RULES FOR ALLIANCES
+================================================================================
+
+The following optional rules modify how Alliances work in terms of player
+count limits and stronghold win conditions. These are presented as variants
+to achieve different game lengths and dynamics.
+
+DEFAULT ALLIANCE GAME (Standard Rules):
+  - Max 2 players per Alliance.
+  - 4 strongholds needed to win (Allied).
+  - Result: A longer game. Players seek synergy with one partner and must
+    hold on to acquired strongholds together.
+
+VARIANT — 2-PLAYER ALLIANCE LIMIT, 3 STRONGHOLDS TO WIN:
+  - Max 2 players per Alliance.
+  - 3 strongholds needed to win (Allied).
+  - Result: A shorter game. Players look for synergy with one partner but
+    target 3 strongholds rather than 4.
+
+VARIANT — 3-PLAYER ALLIANCE LIMIT, 4 STRONGHOLDS TO WIN:
+  - Up to 3 players may be in an Alliance.
+  - 4 strongholds needed to win (Allied).
+  - Result: A longer game. May devolve into 3 strongest vs. 3 weakest,
+    but weaker players may reverse stronger players' fortunes.
+
+VARIANT — 3-PLAYER ALLIANCE LIMIT, 3 STRONGHOLDS TO WIN:
+  - Up to 3 players may be in an Alliance.
+  - 3 strongholds needed to win (Allied).
+  - Result: Probably the shortest game. May devolve into 3 strongest vs.
+    3 weakest, but weaker players may pull off a surprise win.
+
+VARIANT — ANY NUMBER OF PLAYERS IN ALLIANCES, 3 STRONGHOLDS TO WIN:
+  - Any number of players may be in an Alliance.
+  - 3 strongholds needed to win (Allied).
+  - Result: A more exotic game. This is the original Dune rules Alliance
+    game. Adversity creates ingenuity.
+
+
+================================================================================
+END OF DUNE RULES REFERENCE
+================================================================================
+Games Design © Gale Force Nine 2019.
+DUNE © 2019 Legendary. All Rights Reserved.
+Gale Force Nine is a Battlefront Group Company.
+================================================================================
