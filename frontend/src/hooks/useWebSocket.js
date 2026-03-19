@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { WS_URL } from '../config'
 
 /**
  * useWebSocket — keeps a WebSocket connection alive for real-time game updates.
@@ -18,7 +19,7 @@ export function useWebSocket(gameId, playerId, onMessage) {
   useEffect(() => {
     if (!gameId || !playerId) return
 
-    const url = `ws://${window.location.host}/ws/${gameId}/${playerId}`
+    const url = `${WS_URL}/ws/${gameId}/${playerId}`
     const ws = new WebSocket(url)
     wsRef.current = ws
 
