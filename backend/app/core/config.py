@@ -29,9 +29,7 @@ a game rule, you change it here instead of hunting through 20 files.
 # "is localhost:5173 allowed?", our server responds "yes."
 
 ALLOWED_ORIGINS: list[str] = [
-    "http://localhost:5173",   # Vite dev server (React default)
-    "http://localhost:3000",   # Create React App / Next.js default
-    "http://127.0.0.1:5173",  # Same as above but with IP instead of "localhost"
+    "*"
 ]
 
 

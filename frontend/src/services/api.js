@@ -2,33 +2,35 @@
  * API service — all calls to the FastAPI backend.
  */
 
-const BASE = '/api'
+import { API_URL } from "../config";
+
+const BASE = `${API_URL}/api`;
 
 async function post(url, body = {}) {
   const response = await fetch(`${BASE}${url}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
-  })
+  });
 
-  const data = await response.json()
+  const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.detail || `HTTP ${response.status}`)
+    throw new Error(data.detail || `HTTP ${response.status}`);
   }
 
-  return data
+  return data;
 }
 
 async function get(url) {
-  const response = await fetch(`${BASE}${url}`)
-  const data = await response.json()
+  const response = await fetch(`${BASE}${url}`);
+  const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.detail || `HTTP ${response.status}`)
+    throw new Error(data.detail || `HTTP ${response.status}`);
   }
 
-  return data
+  return data;
 }
 
 // ---------------------------------------------------------------------------
@@ -40,7 +42,7 @@ export async function createLobby(hostPlayerId, hostPlayerName, mode = 'basic') 
     host_player_id: hostPlayerId,
     host_player_name: hostPlayerName,
     mode,
-  })
+  });
 }
 
 export async function joinLobby(playerId, playerName, joinCode) {
@@ -48,18 +50,18 @@ export async function joinLobby(playerId, playerName, joinCode) {
     player_id: playerId,
     player_name: playerName,
     join_code: joinCode,
-  })
+  });
 }
 
 export async function selectFaction(gameId, playerId, faction) {
   return post(`/games/${gameId}/faction`, {
     player_id: playerId,
     faction,
-  })
+  });
 }
 
 export async function startGame(gameId, playerId) {
-  return post(`/games/${gameId}/start?player_id=${playerId || ''}`)
+  return post(`/games/${gameId}/start?player_id=${playerId || ''}`);
 }
 
 // ---------------------------------------------------------------------------
@@ -67,8 +69,8 @@ export async function startGame(gameId, playerId) {
 // ---------------------------------------------------------------------------
 
 export async function getGameState(gameId, playerId) {
-  const params = playerId ? `?player_id=${playerId}` : ''
-  return get(`/games/${gameId}${params}`)
+  const params = playerId ? `?player_id=${playerId}` : '';
+  return get(`/games/${gameId}${params}`);
 }
 
 // ---------------------------------------------------------------------------
@@ -80,7 +82,7 @@ export async function advancePhase(gameId, playerId) {
     player_id: playerId,
     action_type: 'advance_phase',
     payload: {},
-  })
+  });
 }
 
 export async function placeBid(gameId, playerId, amount) {
@@ -88,7 +90,7 @@ export async function placeBid(gameId, playerId, amount) {
     player_id: playerId,
     action_type: 'place_bid',
     payload: { amount },
-  })
+  });
 }
 
 export async function passBid(gameId, playerId) {
@@ -96,7 +98,7 @@ export async function passBid(gameId, playerId) {
     player_id: playerId,
     action_type: 'pass_bid',
     payload: {},
-  })
+  });
 }
 
 export async function selectTraitor(gameId, playerId, traitorCardId) {
@@ -104,7 +106,7 @@ export async function selectTraitor(gameId, playerId, traitorCardId) {
     player_id: playerId,
     action_type: 'select_traitor',
     payload: { traitor_card_id: traitorCardId },
-  })
+  });
 }
 
 export async function submitStormDial(gameId, playerId, number) {
@@ -112,7 +114,7 @@ export async function submitStormDial(gameId, playerId, number) {
     player_id: playerId,
     action_type: 'submit_storm_dial',
     payload: { number },
-  })
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -124,7 +126,7 @@ export async function reviveForces(gameId, playerId, count) {
     player_id: playerId,
     action_type: 'revive_forces',
     payload: { count },
-  })
+  });
 }
 
 export async function reviveLeader(gameId, playerId, leaderId) {
@@ -132,7 +134,7 @@ export async function reviveLeader(gameId, playerId, leaderId) {
     player_id: playerId,
     action_type: 'revive_leader',
     payload: { leader_id: leaderId },
-  })
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -144,7 +146,7 @@ export async function shipForces(gameId, playerId, territoryName, sector, count,
     player_id: playerId,
     action_type: 'ship_forces',
     payload: { territory_name: territoryName, sector, count, special_count: specialCount },
-  })
+  });
 }
 
 export async function moveForces(gameId, playerId, fromTerritory, fromSector, toTerritory, toSector, regularCount, specialCount = 0) {
@@ -159,7 +161,7 @@ export async function moveForces(gameId, playerId, fromTerritory, fromSector, to
       regular_count: regularCount,
       special_count: specialCount,
     },
-  })
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -176,7 +178,7 @@ export async function submitBattlePlan(gameId, playerId, forcesDialed, leaderId 
       weapon_card_id: weaponCardId,
       defense_card_id: defenseCardId,
     },
-  })
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -188,7 +190,7 @@ export async function proposeAlliance(gameId, playerId, targetFaction) {
     player_id: playerId,
     action_type: 'propose_alliance',
     payload: { target_faction: targetFaction },
-  })
+  });
 }
 
 export async function acceptAlliance(gameId, playerId, proposerFaction) {
@@ -196,7 +198,7 @@ export async function acceptAlliance(gameId, playerId, proposerFaction) {
     player_id: playerId,
     action_type: 'accept_alliance',
     payload: { proposer_faction: proposerFaction },
-  })
+  });
 }
 
 export async function breakAlliance(gameId, playerId) {
@@ -204,7 +206,7 @@ export async function breakAlliance(gameId, playerId) {
     player_id: playerId,
     action_type: 'break_alliance',
     payload: {},
-  })
+  });
 }
 
 export async function passNexus(gameId, playerId) {
@@ -212,7 +214,7 @@ export async function passNexus(gameId, playerId) {
     player_id: playerId,
     action_type: 'pass_nexus',
     payload: {},
-  })
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -220,5 +222,5 @@ export async function passNexus(gameId, playerId) {
 // ---------------------------------------------------------------------------
 
 export async function createGame(players, mode = 'basic') {
-  return post('/games', { players, mode })
+  return post('/games', { players, mode });
 }
