@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react'
-import { WS_URL } from '../config'
 
 /**
  * useWebSocket — keeps a WebSocket connection alive for real-time game updates.
@@ -19,7 +18,13 @@ export function useWebSocket(gameId, playerId, onMessage) {
   useEffect(() => {
     if (!gameId || !playerId) return
 
-    const url = `${WS_URL}/ws/${gameId}/${playerId}`
+    // We use a relative path to the current host.
+    // In Dev: Vite proxies /ws to localhost:8000
+    // In Prod: Vercel Rewrites forward /ws to Render
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.host;
+    const url = `${protocol}//${host}/ws/ws/${gameId}/${playerId}`;
+
     const ws = new WebSocket(url)
     wsRef.current = ws
 
