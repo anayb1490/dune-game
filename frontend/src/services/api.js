@@ -2,9 +2,10 @@
  * API service — all calls to the FastAPI backend.
  */
 
-import { API_URL } from "../config";
-
-const BASE = `${API_URL}/api`;
+// We use a relative path.
+// Locally: Vite proxies this to http://127.0.0.1:8000
+// Production: Vercel Rewrites handle this to your deployed backend.
+const BASE = '/api';
 
 async function post(url, body = {}) {
   const response = await fetch(`${BASE}${url}`, {
