@@ -15,6 +15,7 @@ import {
   shipForces,
   moveForces,
   submitBattlePlan,
+  declareTraitor,
   proposeAlliance,
   acceptAlliance,
   breakAlliance,
@@ -199,6 +200,11 @@ export default function App() {
     await guardedAction(() => submitBattlePlan(gameId, playerId, forcesDialed, leaderId, weaponCardId, defenseCardId))
   }
 
+  async function handleDeclareTraitor(callTraitor) {
+    if (!gameId) return
+    await guardedAction(() => declareTraitor(gameId, playerId, callTraitor))
+  }
+
   // ----- Nexus (Alliance) handlers -----
 
   async function handleProposeAlliance(targetFaction) {
@@ -303,6 +309,7 @@ export default function App() {
           onShipForces={handleShipForces}
           onMoveForces={handleMoveForces}
           onSubmitBattlePlan={handleSubmitBattlePlan}
+          onDeclareTraitor={handleDeclareTraitor}
           onProposeAlliance={handleProposeAlliance}
           onAcceptAlliance={handleAcceptAlliance}
           onBreakAlliance={handleBreakAlliance}

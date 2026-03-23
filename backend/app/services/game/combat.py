@@ -25,7 +25,7 @@ from __future__ import annotations
 
 from ...models.card import DefenseType, TreacheryCard, TreacheryCardType, WeaponType
 from ...models.faction import FactionName
-from ...models.game_state import ActiveBattle, BattlePlan, GamePhase, GameState
+from ...models.game_state import ActiveBattle, BattlePlan, BattleResult, GamePhase, GameState
 from ...models.leader import Leader, LeaderStatus
 from ...models.player import ForceGroup, Player
 from .handlers.registry import get_handler
@@ -36,16 +36,19 @@ def init_battles(game_state: GameState) -> GameState:
     """
     Find the first territory where a battle must occur and set up
     the ActiveBattle. If no battles exist, advance to the next phase.
+    Clears any leftover battle result from a previous turn.
     """
     battle = _find_next_battle(game_state)
     if battle is None:
         return game_state.model_copy(update={
             "current_phase": next_phase(GamePhase.BATTLE),
             "active_battle": None,
+            "last_battle_result": None,
         })
 
     return game_state.model_copy(update={
         "active_battle": battle,
+        "last_battle_result": None,
     })
 
 
@@ -125,7 +128,9 @@ def submit_battle_plan(
         if player.kwisatz_haderach is None or not player.kwisatz_haderach.is_active:
             raise ValueError("Kwisatz Haderach is not active")
 
-    # Validate weapon/defense cards
+    # Validate weapon/defense cards — any treachery card may be played in either
+    # slot (bluffing with worthless/special cards is valid per the rules).
+    # Only true weapon/defense cards will have mechanical effect; others act as blanks.
     weapon_card = None
     defense_card = None
     if weapon_card_id:
@@ -135,8 +140,6 @@ def submit_battle_plan(
         )
         if weapon_card is None:
             raise ValueError(f"Card not found in hand: {weapon_card_id}")
-        if weapon_card.card_type != TreacheryCardType.WEAPON:
-            raise ValueError(f"{weapon_card.name} is not a weapon card")
 
     if defense_card_id:
         defense_card = next(
@@ -145,8 +148,9 @@ def submit_battle_plan(
         )
         if defense_card is None:
             raise ValueError(f"Card not found in hand: {defense_card_id}")
-        if defense_card.card_type != TreacheryCardType.DEFENSE:
-            raise ValueError(f"{defense_card.name} is not a defense card")
+
+    if weapon_card_id and defense_card_id and weapon_card_id == defense_card_id:
+        raise ValueError("Cannot play the same card as both weapon and defense")
 
     plan = BattlePlan(
         faction=player.faction,
@@ -165,8 +169,60 @@ def submit_battle_plan(
 
     game_state = game_state.model_copy(update={"active_battle": updated_ab})
 
-    # If both plans submitted, resolve the battle
+    # If both plans submitted, wait for explicit traitor declarations before resolving
     if updated_ab.attacker_plan is not None and updated_ab.defender_plan is not None:
+        game_state = game_state.model_copy(update={
+            "active_battle": updated_ab.model_copy(update={"awaiting_traitor_declarations": True})
+        })
+
+    return game_state
+
+
+def declare_traitor(
+    game_state: GameState,
+    player_id: str,
+    call_traitor: bool,
+) -> GameState:
+    """
+    Called after both battle plans are submitted, giving each participant
+    one chance to call traitor on the opponent's leader.
+
+    call_traitor=True: player claims their traitor card matches opponent's leader.
+    call_traitor=False: player passes (no traitor call).
+
+    Once both participants have declared, the battle resolves automatically.
+    """
+    ab = game_state.active_battle
+    if ab is None:
+        raise ValueError("No active battle")
+    if not ab.awaiting_traitor_declarations:
+        raise ValueError("Not in traitor declaration phase — submit both battle plans first")
+
+    player = _get_player(game_state, player_id)
+
+    if player.faction == ab.attacker_faction:
+        if ab.attacker_traitor_called is not None:
+            raise ValueError("Attacker has already declared")
+        if call_traitor:
+            if not _check_traitor(player, ab.defender_plan.leader_id, ab.defender_faction):
+                raise ValueError("You don't have a traitor card matching the opponent's leader")
+        updated_ab = ab.model_copy(update={"attacker_traitor_called": call_traitor})
+
+    elif player.faction == ab.defender_faction:
+        if ab.defender_traitor_called is not None:
+            raise ValueError("Defender has already declared")
+        if call_traitor:
+            if not _check_traitor(player, ab.attacker_plan.leader_id, ab.attacker_faction):
+                raise ValueError("You don't have a traitor card matching the opponent's leader")
+        updated_ab = ab.model_copy(update={"defender_traitor_called": call_traitor})
+
+    else:
+        raise ValueError(f"{player.faction.value} is not part of this battle")
+
+    game_state = game_state.model_copy(update={"active_battle": updated_ab})
+
+    # Both declared — resolve the battle
+    if updated_ab.attacker_traitor_called is not None and updated_ab.defender_traitor_called is not None:
         return resolve_battle(game_state)
 
     return game_state
@@ -186,9 +242,17 @@ def resolve_battle(game_state: GameState) -> GameState:
     attacker = _get_player_by_faction(game_state, ab.attacker_faction)
     defender = _get_player_by_faction(game_state, ab.defender_faction)
 
-    # Check for traitor calls
-    atk_traitor_called = _check_traitor(attacker, def_plan.leader_id, ab.defender_faction)
-    def_traitor_called = _check_traitor(defender, atk_plan.leader_id, ab.attacker_faction)
+    # Use pre-declared traitor calls (from declare_traitor) if available,
+    # otherwise fall back to automatic check (for direct/test calls).
+    if ab.attacker_traitor_called is not None:
+        atk_traitor_called = ab.attacker_traitor_called
+    else:
+        atk_traitor_called = _check_traitor(attacker, def_plan.leader_id, ab.defender_faction)
+
+    if ab.defender_traitor_called is not None:
+        def_traitor_called = ab.defender_traitor_called
+    else:
+        def_traitor_called = _check_traitor(defender, atk_plan.leader_id, ab.attacker_faction)
 
     # If both call traitor, they cancel out (no effect)
     if atk_traitor_called and def_traitor_called:
@@ -217,29 +281,86 @@ def resolve_battle(game_state: GameState) -> GameState:
 
     if lasgun_explosion:
         # Both sides are completely destroyed
+        atk_forces_before = _count_forces_in_territory(attacker, ab.territory_name)
+        def_forces_before = _count_forces_in_territory(defender, ab.territory_name)
         game_state = _destroy_all_forces(game_state, ab.territory_name, ab.attacker_faction)
         game_state = _destroy_all_forces(game_state, ab.territory_name, ab.defender_faction)
         game_state = _kill_leader_if_used(game_state, ab.attacker_faction, atk_plan.leader_id)
         game_state = _kill_leader_if_used(game_state, ab.defender_faction, def_plan.leader_id)
         game_state = _discard_battle_cards(game_state, ab.attacker_faction, atk_plan)
         game_state = _discard_battle_cards(game_state, ab.defender_faction, def_plan)
+        summary = (
+            f"LASGUN-SHIELD EXPLOSION in {ab.territory_name}! "
+            f"All forces destroyed — no winner."
+        )
+        result = BattleResult(
+            territory_name=ab.territory_name,
+            attacker_faction=ab.attacker_faction,
+            defender_faction=ab.defender_faction,
+            attacker_forces_lost=atk_forces_before,
+            defender_forces_lost=def_forces_before,
+            attacker_leader_killed=bool(atk_plan.leader_id),
+            defender_leader_killed=bool(def_plan.leader_id),
+            lasgun_explosion=True,
+            summary=summary,
+        )
+        game_state = game_state.model_copy(update={"last_battle_result": result})
+        game_state = _append_game_log(game_state, summary)
         return _after_battle(game_state)
 
     # Traitor resolution
     if atk_traitor_called:
-        # Attacker called traitor on defender's leader - defender loses everything
+        # Attacker called traitor on defender's leader — defender loses everything
+        def_forces_before = _count_forces_in_territory(defender, ab.territory_name)
         game_state = _destroy_all_forces(game_state, ab.territory_name, ab.defender_faction)
         game_state = _kill_leader_if_used(game_state, ab.defender_faction, def_plan.leader_id)
         game_state = _discard_battle_cards(game_state, ab.attacker_faction, atk_plan)
         game_state = _discard_battle_cards(game_state, ab.defender_faction, def_plan)
+        def_leader_name = _leader_name(game_state, def_plan.leader_id)
+        summary = (
+            f"TRAITOR! {ab.attacker_faction.value} calls {def_leader_name} traitor in "
+            f"{ab.territory_name}. {ab.defender_faction.value} loses all {def_forces_before} forces."
+        )
+        result = BattleResult(
+            territory_name=ab.territory_name,
+            attacker_faction=ab.attacker_faction,
+            defender_faction=ab.defender_faction,
+            winner_faction=ab.attacker_faction,
+            loser_faction=ab.defender_faction,
+            defender_forces_lost=def_forces_before,
+            defender_leader_killed=bool(def_plan.leader_id),
+            traitor_called_by=ab.attacker_faction,
+            summary=summary,
+        )
+        game_state = game_state.model_copy(update={"last_battle_result": result})
+        game_state = _append_game_log(game_state, summary)
         return _after_battle(game_state)
 
     if def_traitor_called:
-        # Defender called traitor on attacker's leader - attacker loses everything
+        # Defender called traitor on attacker's leader — attacker loses everything
+        atk_forces_before = _count_forces_in_territory(attacker, ab.territory_name)
         game_state = _destroy_all_forces(game_state, ab.territory_name, ab.attacker_faction)
         game_state = _kill_leader_if_used(game_state, ab.attacker_faction, atk_plan.leader_id)
         game_state = _discard_battle_cards(game_state, ab.attacker_faction, atk_plan)
         game_state = _discard_battle_cards(game_state, ab.defender_faction, def_plan)
+        atk_leader_name = _leader_name(game_state, atk_plan.leader_id)
+        summary = (
+            f"TRAITOR! {ab.defender_faction.value} calls {atk_leader_name} traitor in "
+            f"{ab.territory_name}. {ab.attacker_faction.value} loses all {atk_forces_before} forces."
+        )
+        result = BattleResult(
+            territory_name=ab.territory_name,
+            attacker_faction=ab.attacker_faction,
+            defender_faction=ab.defender_faction,
+            winner_faction=ab.defender_faction,
+            loser_faction=ab.attacker_faction,
+            attacker_forces_lost=atk_forces_before,
+            attacker_leader_killed=bool(atk_plan.leader_id),
+            traitor_called_by=ab.defender_faction,
+            summary=summary,
+        )
+        game_state = game_state.model_copy(update={"last_battle_result": result})
+        game_state = _append_game_log(game_state, summary)
         return _after_battle(game_state)
 
     # Calculate battle totals
@@ -336,6 +457,38 @@ def resolve_battle(game_state: GameState) -> GameState:
     # Discard used treachery cards
     game_state = _discard_battle_cards(game_state, ab.attacker_faction, atk_plan)
     game_state = _discard_battle_cards(game_state, ab.defender_faction, def_plan)
+
+    # Build battle result
+    atk_is_winner = winner_faction == ab.attacker_faction
+    tie_note = " (tie — defender wins)" if atk_total == def_total else ""
+    summary = (
+        f"{winner_faction.value} wins battle in {ab.territory_name}{tie_note}! "
+        f"({ab.attacker_faction.value} {atk_total} vs {ab.defender_faction.value} {def_total}). "
+        f"{loser_faction.value} loses {loser_forces_lost} forces."
+    )
+    if winner_leader_killed and winner_plan.leader_id:
+        wl_name = _leader_name(game_state, winner_plan.leader_id)
+        summary += f" {winner_faction.value}'s {wl_name} killed."
+    if loser_leader_killed and loser_plan.leader_id:
+        ll_name = _leader_name(game_state, loser_plan.leader_id)
+        summary += f" {loser_faction.value}'s {ll_name} killed."
+
+    result = BattleResult(
+        territory_name=ab.territory_name,
+        attacker_faction=ab.attacker_faction,
+        defender_faction=ab.defender_faction,
+        winner_faction=winner_faction,
+        loser_faction=loser_faction,
+        attacker_total=atk_total,
+        defender_total=def_total,
+        attacker_forces_lost=winner_plan.forces_dialed if atk_is_winner else loser_forces_lost,
+        defender_forces_lost=loser_forces_lost if atk_is_winner else winner_plan.forces_dialed,
+        attacker_leader_killed=atk_leader_killed,
+        defender_leader_killed=def_leader_killed,
+        summary=summary,
+    )
+    game_state = game_state.model_copy(update={"last_battle_result": result})
+    game_state = _append_game_log(game_state, summary)
 
     return _after_battle(game_state)
 
@@ -692,3 +845,21 @@ def _get_player_by_faction(game_state: GameState, faction: FactionName) -> Playe
         if player.faction == faction:
             return player
     raise ValueError(f"No player with faction: {faction.value}")
+
+
+def _leader_name(game_state: GameState, leader_id: str | None) -> str:
+    """Return a display name for a leader id, or 'Unknown' if not found."""
+    if not leader_id:
+        return "—"
+    if leader_id == "kwisatz_haderach":
+        return "Kwisatz Haderach"
+    leader = _find_leader_by_id(game_state, leader_id)
+    return leader.name if leader else leader_id
+
+
+def _append_game_log(game_state: GameState, message: str) -> GameState:
+    """Append a message to the cumulative game log (capped at 60)."""
+    new_log = list(game_state.game_log) + [message]
+    if len(new_log) > 60:
+        new_log = new_log[-60:]
+    return game_state.model_copy(update={"game_log": new_log})

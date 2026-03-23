@@ -89,6 +89,37 @@ class BattlePlan(BaseModel):
     )
 
 
+class BattleResult(BaseModel):
+    """
+    Summary of a completed battle, stored on GameState for UI display.
+    Persists until the next Battle Phase begins (cleared by init_battles).
+    """
+    territory_name: str
+    attacker_faction: FactionName
+    defender_faction: FactionName
+
+    # None when mutual annihilation (lasgun explosion) or both traitors cancel
+    winner_faction: Optional[FactionName] = None
+    loser_faction: Optional[FactionName] = None
+
+    # Battle totals (None when traitor/explosion short-circuits calculation)
+    attacker_total: Optional[int] = None
+    defender_total: Optional[int] = None
+
+    attacker_forces_lost: int = 0
+    defender_forces_lost: int = 0
+
+    attacker_leader_killed: bool = False
+    defender_leader_killed: bool = False
+
+    # Special outcomes
+    traitor_called_by: Optional[FactionName] = None
+    lasgun_explosion: bool = False
+
+    # Human-readable summary
+    summary: str = ""
+
+
 class ActiveBattle(BaseModel):
     """
     The context of a battle currently in progress during the Battle Phase.
@@ -103,6 +134,11 @@ class ActiveBattle(BaseModel):
     # Plans are hidden (None) until both players have submitted
     attacker_plan: Optional[BattlePlan] = None
     defender_plan: Optional[BattlePlan] = None
+
+    # After both plans are submitted, wait for explicit traitor declarations
+    awaiting_traitor_declarations: bool = False
+    attacker_traitor_called: Optional[bool] = None  # None = not yet declared
+    defender_traitor_called: Optional[bool] = None
 
     is_resolved: bool = False
 
@@ -245,6 +281,10 @@ class GameState(BaseModel):
     bidding_state: Optional[BiddingState] = None
     nexus_state: Optional[NexusState] = None
     active_battle: Optional[ActiveBattle] = None
+
+    # Most recent battle result — shown in UI after battle resolves.
+    # Cleared at the start of each Battle Phase by init_battles().
+    last_battle_result: Optional[BattleResult] = None
 
     # Nexus trigger — set by spice blow when Shai-Hulud is drawn (not first turn)
     nexus_triggered: bool = False

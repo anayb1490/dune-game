@@ -15,6 +15,7 @@ import NexusPanel from './NexusPanel.jsx'
 import RevivalPanel from './RevivalPanel.jsx'
 import ShipmentPanel from './ShipmentPanel.jsx'
 import BattlePanel from './BattlePanel.jsx'
+import BattleResultPanel from './BattleResultPanel.jsx'
 import GameLog from './GameLog.jsx'
 import TreacheryHandPanel from './TreacheryHandPanel.jsx'
 import GameBoard from '../board/GameBoard.jsx'
@@ -52,7 +53,7 @@ export default function GameView({
   onAdvancePhase, onPlaceBid, onPassBid,
   onReviveForces, onReviveLeader,
   onShipForces, onMoveForces,
-  onSubmitBattlePlan,
+  onSubmitBattlePlan, onDeclareTraitor,
   onProposeAlliance, onAcceptAlliance, onBreakAlliance, onPassNexus,
 }) {
   const {
@@ -65,6 +66,7 @@ export default function GameView({
     territories,
     bidding_state,
     active_battle,
+    last_battle_result,
     winner,
     is_game_over,
     phase_messages,
@@ -248,13 +250,25 @@ export default function GameView({
           />
         )}
 
+        {/* Battle result — shown whenever a result is available during battle phase */}
+        {current_phase === 'battle' && last_battle_result && !active_battle && (
+          <BattleResultPanel result={last_battle_result} />
+        )}
+
         {/* Battle panel */}
         {isBattle && (
-          <BattlePanel
-            activeBattle={active_battle}
-            myPlayer={myPlayer}
-            onSubmitPlan={onSubmitBattlePlan}
-          />
+          <>
+            {last_battle_result && (
+              <BattleResultPanel result={last_battle_result} />
+            )}
+            <BattlePanel
+              activeBattle={active_battle}
+              myPlayer={myPlayer}
+              players={players}
+              onSubmitPlan={onSubmitBattlePlan}
+              onDeclareTraitor={onDeclareTraitor}
+            />
+          </>
         )}
 
         {/* Nexus panel — shown during Nexus phase */}

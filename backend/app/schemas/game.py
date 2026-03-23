@@ -64,6 +64,7 @@ class GameActionType(str, Enum):
     SHIP_FORCES = "ship_forces"
     MOVE_FORCES = "move_forces"
     SUBMIT_BATTLE_PLAN = "submit_battle_plan"
+    DECLARE_TRAITOR = "declare_traitor"
     # Alliance / Nexus actions
     PROPOSE_ALLIANCE = "propose_alliance"
     ACCEPT_ALLIANCE = "accept_alliance"
