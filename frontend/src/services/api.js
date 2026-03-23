@@ -182,6 +182,14 @@ export async function submitBattlePlan(gameId, playerId, forcesDialed, leaderId 
   });
 }
 
+export async function declareTraitor(gameId, playerId, callTraitor) {
+  return post(`/games/${gameId}/action`, {
+    player_id: playerId,
+    action_type: 'declare_traitor',
+    payload: { call_traitor: callTraitor },
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Nexus (Alliance) actions
 // ---------------------------------------------------------------------------

@@ -26,7 +26,7 @@ from ...schemas.game import (
     SelectFactionRequest,
 )
 from ...services.game.bidding import place_bid, pass_bid
-from ...services.game.combat import submit_battle_plan
+from ...services.game.combat import declare_traitor, submit_battle_plan
 from ...services.game.engine import advance_phase
 from ...services.game.nexus import (
     propose_alliance, accept_alliance, break_alliance, pass_nexus,
@@ -326,6 +326,13 @@ async def perform_action(game_id: str, action: GameActionRequest) -> dict:
                     action.payload.get("leader_id"),
                     action.payload.get("weapon_card_id"),
                     action.payload.get("defense_card_id"),
+                )
+
+            case GameActionType.DECLARE_TRAITOR:
+                game_state = declare_traitor(
+                    game_state,
+                    action.player_id,
+                    bool(action.payload.get("call_traitor", False)),
                 )
 
             case GameActionType.PROPOSE_ALLIANCE:

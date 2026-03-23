@@ -15,6 +15,7 @@ import NexusPanel from './NexusPanel.jsx'
 import RevivalPanel from './RevivalPanel.jsx'
 import ShipmentPanel from './ShipmentPanel.jsx'
 import BattlePanel from './BattlePanel.jsx'
+import BattleResultPanel from './BattleResultPanel.jsx'
 import GameLog from './GameLog.jsx'
 import TreacheryHandPanel from './TreacheryHandPanel.jsx'
 import GameBoard from '../board/GameBoard.jsx'
@@ -52,7 +53,7 @@ export default function GameView({
   onAdvancePhase, onPlaceBid, onPassBid,
   onReviveForces, onReviveLeader,
   onShipForces, onMoveForces,
-  onSubmitBattlePlan,
+  onSubmitBattlePlan, onDeclareTraitor,
   onProposeAlliance, onAcceptAlliance, onBreakAlliance, onPassNexus,
 }) {
   const {
@@ -65,7 +66,9 @@ export default function GameView({
     territories,
     bidding_state,
     active_battle,
+    last_battle_result,
     winner,
+    ally_winner,
     is_game_over,
     phase_messages,
   } = gameState
@@ -130,7 +133,12 @@ export default function GameView({
         {is_game_over && (
           <div className="bg-sand/20 border border-sand rounded px-3 py-2 text-center mb-2 shrink-0">
             <p className="text-sand font-bold uppercase tracking-widest">
-              {winner ? `${winner.replace('_', ' ')} wins!` : 'Game Over'}
+              {winner
+                ? ally_winner
+                  ? `${FACTION_LABELS[winner] ?? winner} + ${FACTION_LABELS[ally_winner] ?? ally_winner} win!`
+                  : `${FACTION_LABELS[winner] ?? winner} wins!`
+                : 'Game Over — No Victor'
+              }
             </p>
           </div>
         )}
@@ -248,13 +256,25 @@ export default function GameView({
           />
         )}
 
+        {/* Battle result — shown whenever a result is available during battle phase */}
+        {current_phase === 'battle' && last_battle_result && !active_battle && (
+          <BattleResultPanel result={last_battle_result} />
+        )}
+
         {/* Battle panel */}
         {isBattle && (
-          <BattlePanel
-            activeBattle={active_battle}
-            myPlayer={myPlayer}
-            onSubmitPlan={onSubmitBattlePlan}
-          />
+          <>
+            {last_battle_result && (
+              <BattleResultPanel result={last_battle_result} />
+            )}
+            <BattlePanel
+              activeBattle={active_battle}
+              myPlayer={myPlayer}
+              players={players}
+              onSubmitPlan={onSubmitBattlePlan}
+              onDeclareTraitor={onDeclareTraitor}
+            />
+          </>
         )}
 
         {/* Nexus panel — shown during Nexus phase */}

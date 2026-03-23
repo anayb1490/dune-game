@@ -50,7 +50,10 @@
       "Bash(python -B -m pytest backend/tests/ -x --tb=short)",
       "Bash(python -m pytest backend/tests/ -v)",
       "Bash(pip install pymupdf)",
-      "Bash(grep -r \"handler\\\\.\" backend/app/services/game/*.py)"
+      "Bash(grep -r \"handler\\\\.\" backend/app/services/game/*.py)",
+      "Bash(pdftotext \"C:\\\\Users\\\\anayb\\\\Downloads\\\\dune_Official-Rules.pdf\" -)",
+      "Bash(grep -B 5 -A 10 \"^ALLIANCE$\")",
+      "Bash(grep -n \"^11$\\\\|^12$\\\\|^24$\\\\|ALLIANCES \\(NEXUS\\)\\\\|SPICE BLOW AND NEXUS\\\\|Optional Rules for Alliances\")"
     ]
   }
 }

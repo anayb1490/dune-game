@@ -104,9 +104,16 @@ def place_bid(game_state: GameState, player_id: str, amount: int) -> GameState:
             f"Bid of {amount} must be higher than current high bid of {bs.current_high_bid}"
         )
 
-    if amount > player.spice:
+    # Allied spice may be used: bidder can spend up to own + ally's spice
+    ally_player = next(
+        (p for p in game_state.players if p.faction == player.ally),
+        None,
+    ) if player.ally else None
+    ally_spice = ally_player.spice if ally_player else 0
+    if amount > player.spice + ally_spice:
         raise ValueError(
-            f"{player.faction.value} has {player.spice} spice but tried to bid {amount}"
+            f"{player.faction.value} has {player.spice} spice "
+            f"(ally has {ally_spice}) but tried to bid {amount}"
         )
 
     handler = get_handler(player.faction)
@@ -185,13 +192,19 @@ def _resolve_current_auction(game_state: GameState) -> GameState:
     bid_amount = bs.current_high_bid
 
     # Find winner and update their hand + spice
+    # If the winner can't fully cover the bid from their own spice, the
+    # remainder is paid by their ally (alliance spice-sharing rule).
+    winner_player = next(p for p in game_state.players if p.faction == winner_faction)
+    own_payment = min(winner_player.spice, bid_amount)
+    ally_payment = bid_amount - own_payment  # 0 when winner covers alone
+    ally_faction = winner_player.ally  # None when no ally
+
     updated_players = []
     emperor_faction = None
-    spice_recipient_found = False
 
     for p in game_state.players:
         if p.faction == winner_faction:
-            # Winner: add card to hand, deduct spice
+            # Winner: add card to hand, deduct own portion
             new_hand = list(p.treachery_hand) + [card]
 
             # Check for Harkonnen bonus card
@@ -201,7 +214,12 @@ def _resolve_current_auction(game_state: GameState) -> GameState:
 
             updated_players.append(p.model_copy(update={
                 "treachery_hand": new_hand,
-                "spice": p.spice - bid_amount,
+                "spice": p.spice - own_payment,
+            }))
+        elif ally_faction and p.faction == ally_faction and ally_payment > 0:
+            # Ally covers the shortfall
+            updated_players.append(p.model_copy(update={
+                "spice": p.spice - ally_payment,
             }))
         else:
             updated_players.append(p)
@@ -225,7 +243,6 @@ def _resolve_current_auction(game_state: GameState) -> GameState:
     # Remove Harkonnen bonus cards from the deck
     remaining_deck = list(game_state.treachery_deck)
     handler = get_handler(winner_faction)
-    winner_player = next(p for p in game_state.players if p.faction == winner_faction)
     bonus_cards = handler.on_card_purchased(card, winner_player, game_state)
     if bonus_cards:
         # Remove drawn cards from the deck

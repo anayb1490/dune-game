@@ -141,23 +141,32 @@ def advance_phase(game_state: GameState) -> GameState:
         case GamePhase.MENTAT_PAUSE:
             winner = _check_stronghold_victory(game_state)
             if winner:
+                # Also record the ally as a co-winner if this is an alliance victory
+                winner_player = next(
+                    (p for p in game_state.players if p.faction == winner), None
+                )
+                ally_winner = winner_player.ally if winner_player else None
                 return game_state.model_copy(update={
                     "is_game_over": True,
                     "winner": winner,
+                    "ally_winner": ally_winner,
                 })
             alt_winner = _check_turn_limit_winner(game_state)
             if alt_winner:
                 return game_state.model_copy(update={
                     "is_game_over": True,
                     "winner": alt_winner,
+                    "ally_winner": None,
                 })
             if game_state.current_turn >= MAX_TURNS:
                 return game_state.model_copy(update={
                     "is_game_over": True,
                     "winner": None,
+                    "ally_winner": None,
                 })
             messages = [
-                f"No faction controls 3 strongholds. "
+                f"No faction controls enough strongholds "
+                f"(3 solo or 4 with an ally). "
                 f"Turn {game_state.current_turn + 1} begins next."
             ]
             new_log = (game_state.game_log + messages)[-60:]

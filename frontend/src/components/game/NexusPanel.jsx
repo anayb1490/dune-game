@@ -62,32 +62,68 @@ export default function NexusPanel({
   const alreadyDone = (nexus_state.factions_done || []).includes(myPlayer.faction)
   const hasAlly = !!myPlayer.ally
 
+  // Build public alliance board: pairs already formed
+  const alliancePairs = []
+  const seenAllies = new Set()
+  for (const p of (players || [])) {
+    if (p.ally && !seenAllies.has(p.faction) && !seenAllies.has(p.ally)) {
+      alliancePairs.push([p.faction, p.ally])
+      seenAllies.add(p.faction)
+      seenAllies.add(p.ally)
+    }
+  }
+
+  // All pending proposals (public)
+  const allProposals = Object.entries(nexus_state.proposals || {})
+
   return (
     <div className="bg-surface border border-yellow-800/60 rounded p-3 space-y-3">
       <h3 className="text-yellow-400 text-[11px] font-bold uppercase tracking-widest">
         ☽ Nexus — Alliances
       </h3>
 
-      {/* Current alliance status */}
-      {hasAlly && (
-        <div className="bg-yellow-900/20 border border-yellow-700/40 rounded px-2 py-1.5">
-          <p className="text-[10px] text-gray-400">Allied with</p>
-          <p className={`text-sm font-bold ${FACTION_COLORS[myPlayer.ally] ?? 'text-gray-200'}`}>
-            {FACTION_LABELS[myPlayer.ally] ?? myPlayer.ally}
-          </p>
+      {/* Public: Active alliances */}
+      {alliancePairs.length > 0 && (
+        <div className="space-y-1">
+          <p className="text-[10px] text-gray-400 uppercase tracking-wider">Active alliances</p>
+          {alliancePairs.map(([a, b]) => (
+            <div key={`${a}-${b}`} className="flex items-center gap-1.5 bg-yellow-900/20 border border-yellow-700/30 rounded px-2 py-1">
+              <span className={`text-[10px] font-bold ${FACTION_COLORS[a] ?? 'text-gray-300'}`}>
+                {FACTION_LABELS[a] ?? a}
+              </span>
+              <span className="text-gray-600 text-[9px]">+</span>
+              <span className={`text-[10px] font-bold ${FACTION_COLORS[b] ?? 'text-gray-300'}`}>
+                {FACTION_LABELS[b] ?? b}
+              </span>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Pending incoming proposals — any player can accept */}
+      {/* Public: Pending proposals */}
+      {allProposals.length > 0 && (
+        <div className="space-y-1">
+          <p className="text-[10px] text-gray-400 uppercase tracking-wider">Pending proposals</p>
+          {allProposals.map(([proposer, target]) => (
+            <p key={proposer} className="text-[10px] text-gray-400">
+              <span className={FACTION_COLORS[proposer] ?? 'text-gray-300'}>{FACTION_LABELS[proposer] ?? proposer}</span>
+              {' → '}
+              <span className={FACTION_COLORS[target] ?? 'text-gray-300'}>{FACTION_LABELS[target] ?? target}</span>
+            </p>
+          ))}
+        </div>
+      )}
+
+      {/* Incoming proposals — Accept only on your own turn */}
       {pendingProposalFrom.length > 0 && (
         <div className="space-y-1">
-          <p className="text-[10px] text-gray-400 uppercase tracking-wider">Proposals received</p>
+          <p className="text-[10px] text-gray-400 uppercase tracking-wider">Proposals to you</p>
           {pendingProposalFrom.map(proposer => (
             <div key={proposer} className="flex items-center justify-between gap-2">
               <span className={`text-xs font-semibold ${FACTION_COLORS[proposer] ?? 'text-gray-300'}`}>
                 {FACTION_LABELS[proposer] ?? proposer}
               </span>
-              {!hasAlly && (
+              {isMyTurn && !hasAlly && (
                 <Button
                   onClick={() => onAcceptAlliance(proposer)}
                   disabled={actionBusy}
@@ -95,6 +131,9 @@ export default function NexusPanel({
                 >
                   Accept
                 </Button>
+              )}
+              {!isMyTurn && (
+                <span className="text-[9px] text-gray-600 italic">accept on your turn</span>
               )}
             </div>
           ))}
