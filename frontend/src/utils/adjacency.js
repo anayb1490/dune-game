@@ -51,10 +51,12 @@ function buildAdjacency(territories) {
 
       let adjacent = false
 
-      // Rule 1: Polar Sink borders all stronghold and rock territories
+      // Rule 1: Polar Sink borders all stronghold and rock territories,
+      // plus sand territories with storm_exception (e.g. Imperial Basin).
       if (r1 === -1 || r2 === -1) {
         const otherRing = r1 === -1 ? r2 : r1
-        adjacent = otherRing === 0 || otherRing === 1
+        const otherT    = r1 === -1 ? t2 : t1
+        adjacent = otherRing === 0 || otherRing === 1 || !!otherT.storm_exception
       } else {
         // Rule 2: adjacent rings + touching sectors
         adjacent =

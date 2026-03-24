@@ -64,10 +64,12 @@ def _compute_adjacency() -> dict[str, frozenset[str]]:
             t1, t2 = TERRITORIES[n1], TERRITORIES[n2]
             r1, r2 = _ring(t1.territory_type), _ring(t2.territory_type)
 
-            # Rule 1: Polar Sink borders all strongholds and rock territories
+            # Rule 1: Polar Sink borders all strongholds, rock territories,
+            # and any sand territory with storm_exception (e.g. Imperial Basin).
             if r1 == -1 or r2 == -1:
                 other_ring = r2 if r1 == -1 else r1
-                if other_ring in (0, 1):
+                other_t    = t2 if r1 == -1 else t1
+                if other_ring in (0, 1) or getattr(other_t, 'storm_exception', False):
                     adj[n1].add(n2)
                     adj[n2].add(n1)
                 continue
