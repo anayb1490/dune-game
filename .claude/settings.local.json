@@ -65,7 +65,20 @@
       "Bash(curl -s http://localhost:8001/health)",
       "Bash(curl -s http://localhost:8001/openapi.json)",
       "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(m.upper\\(\\), p\\) for p,pi in d[''''paths''''].items\\(\\) for m in pi]\")",
-      "Bash(GID=\"bc766a33-4e1c-4126-9d6d-84895df00b9b\" curl -s http://localhost:8000/api/games/$GID)"
+      "Bash(GID=\"bc766a33-4e1c-4126-9d6d-84895df00b9b\" curl -s http://localhost:8000/api/games/$GID)",
+      "Bash(netstat -ano)",
+      "Bash(curl -s http://127.0.0.1:8000/api/games)",
+      "Bash(curl -s http://127.0.0.1:8000/docs)",
+      "Bash(curl -s http://127.0.0.1:8000/openapi.json)",
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); [print\\(p\\) for p in d.get\\(''''paths'''',{}\\)]\")",
+      "Bash(curl -s http://127.0.0.1:8000/api/games/5eba629f)",
+      "Bash(tasklist /FI 'PID eq 27408' /FO CSV)",
+      "Bash(curl -s http://127.0.0.1:8000/api/games/a782a327)",
+      "Bash(pip install:*)",
+      "Bash(curl -s http://127.0.0.1:8000/health)",
+      "Bash(curl -s \"http://127.0.0.1:8000/api/games/8ef065db\")",
+      "Bash(curl -s \"http://127.0.0.1:8000/api/games/73645a92\")",
+      "Bash(GAME_ID=\"d3fceed4-c3ba-49fa-a731-9da2708ab860\" curl -s -X POST \"http://127.0.0.1:8000/api/games/$GAME_ID/action\" -H \"Content-Type: application/json\" -d '{\"\"\"\"player_id\"\"\"\":\"\"\"\"bot1\"\"\"\",\"\"\"\"action_type\"\"\"\":\"\"\"\"select_traitor\"\"\"\",\"\"\"\"payload\"\"\"\":{\"\"\"\"traitor_card_id\"\"\"\":\"\"\"\"traitor_atreides_thufir_hawat\"\"\"\"}}')"
     ]
   }
 }

@@ -51,68 +51,58 @@ const R_OUTER  = Math.round(BR * 0.915)  // 284 — outer/storm boundary
 //   MIDDLE — outer rock ring + inner sand pockets
 //   OUTER  — sand territories (storm-vulnerable, mostly)
 
+const R_INNER_MID = Math.round(R_POLAR + (R_INNER - R_POLAR) * 0.5)
+
 const TERRITORY_ARCS = {
 
   // ── INNER BAND  (ri = R_POLAR, ro = R_INNER) ─────────────────────────────
-  // Non-overlapping sector allocation going clockwise from top (0→18):
-  //   Tsimpo       17.5 → 1.5
-  //   Arrakeen      1.5 → 3.0
-  //   Hole/Rock     3.0 → 4.0
-  //   Imp Basin     4.0 → 6.0
-  //   Harg Pass     5.8 → 7.0
-  //   Tuek's        6.8 → 8.2
-  //   Cielago E     8.0 → 9.5
-  //   Cielago W     9.5 → 11.0
-  //   Hab Sietch   10.8 → 12.2
-  //   Arsunt       12.0 → 13.5
-  //   Sietch Tabr  13.3 → 15.0
-  //   Wind Pass    14.8 → 16.0
-  //   Wind Pass N  15.8 → 17.2
-  //   Carthag      17.0 → 18.5
-  'Tsimpo':            { s0: 17.5, s1: 1.5,  ri: R_POLAR, ro: R_INNER },
-  'Arrakeen':          { s0:  1.5, s1: 3.0,  ri: R_POLAR, ro: R_INNER },
-  'Hole in the Rock':  { s0:  3.0, s1: 4.0,  ri: R_POLAR, ro: Math.round(R_POLAR + (R_INNER - R_POLAR) * 0.55) },
-  'Imperial Basin':    { s0:  4.0, s1: 6.0,  ri: Math.round(R_POLAR + (R_INNER - R_POLAR) * 0.45), ro: R_INNER },
-  'Harg Pass':         { s0:  5.8, s1: 7.0,  ri: R_POLAR, ro: Math.round(R_POLAR + (R_INNER - R_POLAR) * 0.55) },
-  "Tuek's Sietch":     { s0:  6.8, s1: 8.2,  ri: R_POLAR, ro: R_INNER },
-  'Cielago East':      { s0:  8.0, s1: 9.5,  ri: R_POLAR, ro: R_INNER },
-  'Cielago West':      { s0:  9.5, s1: 11.0, ri: R_POLAR, ro: R_INNER },
-  'Habbanya Sietch':   { s0: 10.8, s1: 12.2, ri: R_POLAR, ro: R_INNER },
+  // Non-overlapping sector allocation going clockwise from top (0→18).
+  // Shared sectors are split at the midpoint between neighbours.
+  // Hole in Rock / Harg Pass occupy the lower sub-band; Imperial Basin the upper.
+  'Tsimpo':            { s0: 18.0, s1: 19.5, ri: R_POLAR, ro: R_INNER },
+  'Arrakeen':          { s0:  1.5, s1:  3.0, ri: R_POLAR, ro: R_INNER },
+  'Hole in the Rock':  { s0:  3.0, s1:  4.5, ri: R_POLAR, ro: R_INNER_MID },
+  'Imperial Basin':    { s0:  3.0, s1:  6.0, ri: R_INNER_MID, ro: R_INNER },
+  'Harg Pass':         { s0:  5.0, s1:  6.5, ri: R_POLAR, ro: R_INNER_MID },
+  "Tuek's Sietch":     { s0:  6.5, s1:  8.0, ri: R_POLAR, ro: R_INNER },
+  'Cielago East':      { s0:  8.0, s1:  9.5, ri: R_POLAR, ro: R_INNER },
+  'Cielago West':      { s0:  9.5, s1: 10.5, ri: R_POLAR, ro: R_INNER },
+  'Habbanya Sietch':   { s0: 10.5, s1: 12.0, ri: R_POLAR, ro: R_INNER },
   'Arsunt':            { s0: 12.0, s1: 13.5, ri: R_POLAR, ro: R_INNER },
-  'Sietch Tabr':       { s0: 13.3, s1: 15.0, ri: R_POLAR, ro: R_INNER },
-  'Wind Pass':         { s0: 14.8, s1: 16.0, ri: R_POLAR, ro: R_INNER },
-  'Wind Pass North':   { s0: 15.8, s1: 17.2, ri: R_POLAR, ro: R_INNER },
-  'Carthag':           { s0: 17.0, s1: 18.5, ri: R_POLAR, ro: R_INNER },
+  'Sietch Tabr':       { s0: 13.5, s1: 15.0, ri: R_POLAR, ro: R_INNER },
+  'Wind Pass':         { s0: 15.0, s1: 16.0, ri: R_POLAR, ro: R_INNER },
+  'Wind Pass North':   { s0: 16.0, s1: 17.0, ri: R_POLAR, ro: R_INNER },
+  'Carthag':           { s0: 17.0, s1: 18.0, ri: R_POLAR, ro: R_INNER },
 
   // ── MIDDLE BAND  (ri = R_INNER, ro = R_MIDDLE) ───────────────────────────
-  'Broken Land':       { s0: 17.2, s1: 19.3, ri: R_INNER, ro: R_MIDDLE },
+  'Broken Land':       { s0: 17.5, s1: 19.5, ri: R_INNER, ro: R_MIDDLE },
   'Rim Wall West':     { s0:  1.5, s1:  3.0, ri: R_INNER, ro: R_MIDDLE },
-  'Sihaya Ridge':      { s0:  2.5, s1:  4.2, ri: R_INNER, ro: R_MIDDLE },
-  'Shield Wall':       { s0:  3.8, s1:  5.5, ri: R_INNER, ro: R_MIDDLE },
-  'Pasty Mesa':        { s0:  4.5, s1:  6.2, ri: R_INNER, ro: R_MIDDLE },
-  'False Wall East':   { s0:  5.2, s1:  7.0, ri: R_INNER, ro: R_MIDDLE },
-  'South Mesa':        { s0:  6.5, s1:  8.0, ri: R_INNER, ro: R_MIDDLE },
-  'False Wall South':  { s0:  7.2, s1:  9.0, ri: R_INNER, ro: R_MIDDLE },
-  'Cielago North':     { s0:  8.8, s1: 10.5, ri: R_INNER, ro: R_MIDDLE },
-  'False Wall West':   { s0: 10.2, s1: 12.0, ri: R_INNER, ro: R_MIDDLE },
-  'Hagga Basin':       { s0: 12.0, s1: 14.5, ri: R_INNER, ro: R_MIDDLE },
-  'Bight of the Cliff':{ s0: 13.5, s1: 15.2, ri: R_INNER, ro: R_MIDDLE },
+  'Sihaya Ridge':      { s0:  3.0, s1:  4.0, ri: R_INNER, ro: R_MIDDLE },
+  'Shield Wall':       { s0:  4.0, s1:  5.2, ri: R_INNER, ro: R_MIDDLE },
+  'Pasty Mesa':        { s0:  5.2, s1:  6.2, ri: R_INNER, ro: R_MIDDLE },
+  'False Wall East':   { s0:  6.2, s1:  7.2, ri: R_INNER, ro: R_MIDDLE },
+  'South Mesa':        { s0:  7.2, s1:  8.0, ri: R_INNER, ro: R_MIDDLE },
+  'False Wall South':  { s0:  8.0, s1:  9.0, ri: R_INNER, ro: R_MIDDLE },
+  'Cielago North':     { s0:  9.0, s1: 10.5, ri: R_INNER, ro: R_MIDDLE },
+  'False Wall West':   { s0: 10.5, s1: 12.0, ri: R_INNER, ro: R_MIDDLE },
+  'Hagga Basin':       { s0: 12.0, s1: 13.5, ri: R_INNER, ro: R_MIDDLE },
+  'Bight of the Cliff':{ s0: 13.5, s1: 15.0, ri: R_INNER, ro: R_MIDDLE },
   'Plastic Basin':     { s0: 15.0, s1: 17.5, ri: R_INNER, ro: R_MIDDLE },
 
   // ── OUTER BAND  (ri = R_MIDDLE, ro = R_OUTER) ────────────────────────────
-  'Old Gap':           { s0: 17.0, s1: 19.5, ri: R_MIDDLE, ro: R_OUTER },
-  'Basin':             { s0:  1.2, s1:  3.0, ri: R_MIDDLE, ro: R_OUTER },
-  'Gara Kulon':        { s0:  3.0, s1:  5.0, ri: R_MIDDLE, ro: R_OUTER },
-  'Red Chasm':         { s0:  4.5, s1:  6.5, ri: R_MIDDLE, ro: R_OUTER },
-  'The Minor Erg':     { s0:  6.0, s1:  8.2, ri: R_MIDDLE, ro: R_OUTER },
-  'Cielago Depression':{ s0:  8.2, s1:  9.8, ri: R_MIDDLE, ro: R_OUTER },
-  'Cielago South':     { s0:  9.5, s1: 11.2, ri: R_MIDDLE, ro: R_OUTER },
-  'Meridian':          { s0: 11.0, s1: 12.5, ri: R_MIDDLE, ro: R_OUTER },
+  'Old Gap':           { s0: 17.5, s1: 19.5, ri: R_MIDDLE, ro: R_OUTER },
+  'Basin':             { s0:  1.5, s1:  3.0, ri: R_MIDDLE, ro: R_OUTER },
+  'Gara Kulon':        { s0:  3.0, s1:  4.5, ri: R_MIDDLE, ro: R_OUTER },
+  'Red Chasm':         { s0:  4.5, s1:  6.0, ri: R_MIDDLE, ro: R_OUTER },
+  'The Minor Erg':     { s0:  6.0, s1:  8.0, ri: R_MIDDLE, ro: R_OUTER },
+  'Cielago Depression':{ s0:  8.0, s1:  9.5, ri: R_MIDDLE, ro: R_OUTER },
+  'Cielago South':     { s0:  9.5, s1: 11.0, ri: R_MIDDLE, ro: R_OUTER },
+  'Meridian':          { s0: 11.0, s1: 12.3, ri: R_MIDDLE, ro: R_OUTER },
   'Habbanya Ridge Flat':{ s0:12.3, s1: 13.5, ri: R_MIDDLE, ro: R_OUTER },
-  'Habbanya Erg':      { s0: 13.2, s1: 14.8, ri: R_MIDDLE, ro: R_OUTER },
-  'The Greater Flat':  { s0: 14.5, s1: 15.8, ri: R_MIDDLE, ro: R_OUTER },
-  'The Great Flat':    { s0: 15.5, s1: 16.8, ri: R_MIDDLE, ro: R_OUTER },
-  'Funeral Plain':     { s0: 16.5, s1: 17.8, ri: R_MIDDLE, ro: R_OUTER },
+  'Habbanya Erg':      { s0: 13.5, s1: 14.8, ri: R_MIDDLE, ro: R_OUTER },
+  'The Greater Flat':  { s0: 14.8, s1: 15.8, ri: R_MIDDLE, ro: R_OUTER },
+  'The Great Flat':    { s0: 15.8, s1: 16.8, ri: R_MIDDLE, ro: R_OUTER },
+  'Funeral Plain':     { s0: 16.8, s1: 17.5, ri: R_MIDDLE, ro: R_OUTER },
 }
 
 // ─── Arc math helpers ─────────────────────────────────────────────────────────
@@ -233,7 +223,6 @@ function RingCircles() {
 // ─── Territory arc ────────────────────────────────────────────────────────────
 
 const LABEL_ABBREV = {
-  'Habbanya Ridge Flat': 'Hab. Ridge Flat',
   'Habbanya Sietch':     'Hab. Sietch',
   'Habbanya Erg':        'Hab. Erg',
   'Cielago Depression':  'Cielago Dep.',
@@ -251,13 +240,13 @@ const LABEL_ABBREV = {
   'Imperial Basin':      'Imp. Basin',
   'Bight of the Cliff':  'Bight',
   'Rim Wall West':       'Rim Wall W.',
-  'The Greater Flat':    'Gr. Flat+',
-  'The Great Flat':      'Gr. Flat',
+  'The Greater Flat':    'Greater Flat',
+  'The Great Flat':      'Great Flat',
   'The Minor Erg':       'Minor Erg',
   'Habbanya Ridge Flat': 'Hab. Ridge',
 }
 
-function TerritoryArc({ name, territory, forceEntries, isStorm, highlight }) {
+function TerritoryArc({ name, territory, forceEntries, isStorm, highlight, mode }) {
   const arc = TERRITORY_ARCS[name]
   if (!arc) return null
 
@@ -284,8 +273,8 @@ function TerritoryArc({ name, territory, forceEntries, isStorm, highlight }) {
     fill   = '#191714'
     stroke = '#3a352a'
   } else if (isSand) {
-    fill   = '#1e1a0d'
-    stroke = '#4a3c18'
+    fill   = '#3a2e14'
+    stroke = '#6a5028'
   }
 
   // Storm highlight on vulnerable sand
@@ -301,19 +290,51 @@ function TerritoryArc({ name, territory, forceEntries, isStorm, highlight }) {
     highlight === 'adjacent' ? '#0d9488' :
     null
 
+  // ── FILL PASS: draw territory shape ──
+  if (mode === 'fill') {
+    return (
+      <g>
+        {glowColor && (
+          <path
+            d={makeArcPath(CX, CY, Math.max(0, ri - 3), ro + 3, s0, s1)}
+            fill="none"
+            stroke={glowColor}
+            strokeWidth={highlight === 'adjacent' ? 1.5 : 2.5}
+            opacity={highlight === 'adjacent' ? 0.5 : 0.9}
+          />
+        )}
+        <path
+          d={path}
+          fill={fill}
+          stroke={glowColor ?? stroke}
+          strokeWidth={strokeW}
+        />
+        {isStronghold && (
+          <path
+            d={makeArcPath(CX, CY, ri + 4, ro - 4, s0 + 0.1, s1 - 0.1)}
+            fill="none"
+            stroke={stroke}
+            strokeWidth={0.5}
+            strokeDasharray="2,2"
+            opacity={0.6}
+          />
+        )}
+      </g>
+    )
+  }
+
+  // ── LABEL PASS: draw text & tokens on top of all fills ──
   const label = LABEL_ABBREV[name] ?? name
 
-  // Rough arc width for font sizing
   const arcSpanDeg = (s1 - s0) * 20
   const arcMidR    = (ri + ro) / 2
   const arcWidthPx = arcMidR * (arcSpanDeg * Math.PI / 180)
   const arcHeightPx = ro - ri
   const availW = Math.min(arcWidthPx * 0.85, arcHeightPx * 0.85)
   const fontSize = isStronghold
-    ? Math.max(6, Math.min(8.5, availW / label.length * 1.6))
-    : Math.max(5, Math.min(7.5, availW / label.length * 1.6))
+    ? Math.max(6.5, Math.min(8.5, availW / label.length * 1.6))
+    : Math.max(5.5, Math.min(7.5, availW / label.length * 1.6))
 
-  // Vertical layout inside arc
   const lineH   = fontSize + 1
   const spiceH  = hasSpice  ? 8 : 0
   const forceH  = hasForces ? 8 : 0
@@ -322,44 +343,13 @@ function TerritoryArc({ name, territory, forceEntries, isStorm, highlight }) {
 
   return (
     <g>
-      {/* Glow ring for highlighted territory */}
-      {glowColor && (
-        <path
-          d={makeArcPath(CX, CY, Math.max(0, ri - 3), ro + 3, s0, s1)}
-          fill="none"
-          stroke={glowColor}
-          strokeWidth={highlight === 'adjacent' ? 1.5 : 2.5}
-          opacity={highlight === 'adjacent' ? 0.5 : 0.9}
-        />
-      )}
-
-      {/* Territory fill */}
-      <path
-        d={path}
-        fill={fill}
-        stroke={glowColor ?? stroke}
-        strokeWidth={strokeW}
-      />
-
-      {/* Stronghold inner dashed ring */}
-      {isStronghold && (
-        <path
-          d={makeArcPath(CX, CY, ri + 4, ro - 4, s0 + 0.1, s1 - 0.1)}
-          fill="none"
-          stroke={stroke}
-          strokeWidth={0.5}
-          strokeDasharray="2,2"
-          opacity={0.6}
-        />
-      )}
-
       {/* Territory name */}
       <text
         x={cx}
         y={topY + lineH * 0.75}
         textAnchor="middle"
         dominantBaseline="central"
-        fill={isStronghold ? '#d4a84b' : '#9a8a6a'}
+        fill={isStronghold ? '#d4a84b' : isSand ? '#c4a868' : '#9a8a6a'}
         fontSize={fontSize}
         fontWeight={isStronghold ? 'bold' : 'normal'}
         fontFamily="serif"
@@ -533,15 +523,7 @@ export default function GameBoard({
         {/* Storm sector fill */}
         <StormSweep stormSector={stormSectorNum} />
 
-        {/* Territory arcs — drawn bottom-up so inner territories appear on top */}
-        {/* Outer band first */}
-        {Object.entries(territories).map(([name, territory]) => {
-          const arc = TERRITORY_ARCS[name]
-          if (!arc || arc.ri >= R_MIDDLE) return null
-          return null // placeholder — handled below in correct order
-        })}
-
-        {/* Render in band order: outer → middle → inner (so inner overlaps outer at boundaries) */}
+        {/* PASS 1: Territory fills — outer → middle → inner (so inner overlaps outer) */}
         {['outer', 'middle', 'inner'].map(band => (
           Object.entries(territories).map(([name, territory]) => {
             const arc = TERRITORY_ARCS[name]
@@ -557,12 +539,13 @@ export default function GameBoard({
             const highlight   = getHighlight(name)
             return (
               <TerritoryArc
-                key={name}
+                key={`fill-${name}`}
                 name={name}
                 territory={territory}
                 forceEntries={forces}
                 isStorm={isStorm}
                 highlight={highlight}
+                mode="fill"
               />
             )
           })
@@ -574,8 +557,36 @@ export default function GameBoard({
         {/* Sector dividing lines */}
         <SectorLines />
 
-        {/* Polar Sink (drawn last so it sits on top of inner arcs) */}
+        {/* Polar Sink (drawn on top of inner arcs) */}
         <PolarSink forces={forceMap['Polar Sink']} />
+
+        {/* PASS 2: Territory labels — rendered on top of ALL fills */}
+        {['outer', 'middle', 'inner'].map(band => (
+          Object.entries(territories).map(([name, territory]) => {
+            const arc = TERRITORY_ARCS[name]
+            if (!arc) return null
+            const inBand =
+              band === 'outer'  ? arc.ri >= R_MIDDLE :
+              band === 'middle' ? arc.ri >= R_INNER && arc.ri < R_MIDDLE :
+              /* inner */         arc.ri < R_INNER
+            if (!inBand) return null
+
+            const forces      = forceMap[name] || []
+            const isStorm     = (territory.sectors || []).includes(stormSectorNum)
+            const highlight   = getHighlight(name)
+            return (
+              <TerritoryArc
+                key={`label-${name}`}
+                name={name}
+                territory={territory}
+                forceEntries={forces}
+                isStorm={isStorm}
+                highlight={highlight}
+                mode="label"
+              />
+            )
+          })
+        ))}
 
         {/* Sector number labels (outermost ring) */}
         <SectorLabels stormSector={stormSectorNum} />
@@ -592,7 +603,7 @@ export default function GameBoard({
           Rock
         </span>
         <span className="flex items-center gap-1">
-          <span className="inline-block w-2.5 h-2.5 rounded-sm border" style={{ borderColor: '#4a3c18', background: '#1e1a0d' }} />
+          <span className="inline-block w-2.5 h-2.5 rounded-sm border" style={{ borderColor: '#6a5028', background: '#3a2e14' }} />
           Sand
         </span>
         <span className="flex items-center gap-1">
