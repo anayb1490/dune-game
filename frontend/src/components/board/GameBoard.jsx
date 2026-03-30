@@ -113,79 +113,40 @@ function polyCentroid(vertices) {
 
 const TERRITORY_POLYGONS = {
 
-  // ── INNER BAND ──────────────────────────────────────────────────────────────
-  'Arrakeen': {
-    band: 'inner',
-    vertices: [[30,0.18],[58,0.18],[55,0.44],[32,0.46]],
-    arcEdges: [[0,1]], arcR: R_POLAR,
-    centroid: null,
-  },
-  'Carthag': {
-    band: 'inner',
-    vertices: [[342,0.18],[358,0.18],[357,0.44],[343,0.46]],
-    arcEdges: [[0,1]], arcR: R_POLAR,
-    centroid: null,
-  },
-  'Imperial Basin': {
-    band: 'inner',
-    vertices: [[60,0.31],[90,0.28],[120,0.31],[120,0.46],[60,0.46]],
-    arcEdges: [],
-    centroid: null,
-  },
-  'Hole in the Rock': {
-    band: 'inner',
-    vertices: [[60,0.18],[88,0.18],[84,0.31],[62,0.32]],
-    arcEdges: [[0,1]], arcR: R_POLAR,
-    centroid: null,
-  },
-  'Harg Pass': {
-    band: 'inner',
-    vertices: [[90,0.18],[128,0.18],[124,0.31],[93,0.32]],
-    arcEdges: [[0,1]], arcR: R_POLAR,
-    centroid: null,
-  },
-  "Tuek's Sietch": {
-    band: 'inner',          // drawn on top so it isn't covered by outer sand
-    vertices: [[132,0.62],[157,0.60],[158,0.76],[133,0.78]],
-    arcEdges: [],
-    centroid: null,
-  },
-  'Arsunt': {
-    band: 'inner',
-    vertices: [[240,0.18],[268,0.18],[266,0.38],[242,0.40]],
-    arcEdges: [[0,1]], arcR: R_POLAR,
-    centroid: null,
-  },
-  'Wind Pass': {
-    band: 'inner',
-    vertices: [[300,0.18],[318,0.18],[316,0.30],[302,0.31]],
-    arcEdges: [[0,1]], arcR: R_POLAR,
-    centroid: null,
-  },
-  'Wind Pass North': {
-    band: 'inner',
-    vertices: [[300,0.30],[319,0.30],[317,0.44],[302,0.45]],
-    arcEdges: [],
-    centroid: null,
-  },
+  // ── MIDDLE BAND (drawn before inner so inner shapes paint on top) ────────────
 
-  // ── MIDDLE BAND ─────────────────────────────────────────────────────────────
+  // Large NE crescent — the dominant northeast rock formation.
+  // Arrakeen + Carthag (inner band) paint on top of this.
+  'Imperial Basin': {
+    band: 'middle',
+    vertices: [
+      [350, 0.54],
+      [  0, 0.58],
+      [ 60, 0.54],
+      [ 80, 0.50],
+      [ 80, 0.28],
+      [ 40, 0.29],
+      [  0, 0.29],
+      [350, 0.28],
+    ],
+    arcEdges: [],
+    centroid: [20, 0.43],
+  },
   'Rim Wall West': {
     band: 'middle',
-    vertices: [[30,0.44],[58,0.44],[56,0.67],[32,0.66]],
+    vertices: [[22,0.46],[58,0.46],[56,0.67],[24,0.67]],
     arcEdges: [],
     centroid: null,
   },
   'Shield Wall': {
     band: 'middle',
-    // Deliberately narrow (arc) but tall (radial) — the defining visual feature
-    vertices: [[81,0.43],[97,0.43],[99,0.68],[83,0.69]],
+    // Narrow arc-width but tall radial depth — wall-like appearance
+    vertices: [[81,0.46],[96,0.46],[98,0.67],[83,0.68]],
     arcEdges: [],
     centroid: null,
   },
   'False Wall East': {
     band: 'middle',
-    // Diagonal strip — leading edge slightly CW of trailing edge
     vertices: [[120,0.41],[137,0.39],[139,0.67],[122,0.68]],
     arcEdges: [],
     centroid: [129,0.54],
@@ -196,22 +157,22 @@ const TERRITORY_POLYGONS = {
     arcEdges: [],
     centroid: [169,0.54],
   },
+  // Narrow elongated strip mirroring False Wall East on the west side
+  'False Wall West': {
+    band: 'middle',
+    vertices: [[220,0.40],[235,0.38],[237,0.63],[222,0.64]],
+    arcEdges: [],
+    centroid: [228,0.51],
+  },
   'Hagga Basin': {
     band: 'middle',
-    vertices: [[240,0.44],[268,0.44],[268,0.60],[252,0.64],[242,0.58]],
+    vertices: [[240,0.46],[268,0.46],[268,0.62],[252,0.66],[240,0.60]],
     arcEdges: [],
     centroid: null,
   },
   'Sietch Tabr': {
     band: 'middle',
-    // Isolated diamond — keep it compact and clearly separate
-    vertices: [[272,0.46],[288,0.44],[290,0.66],[274,0.68]],
-    arcEdges: [],
-    centroid: null,
-  },
-  'Habbanya Sietch': {
-    band: 'inner',          // drawn on top so it isn't covered by outer sand
-    vertices: [[212,0.63],[236,0.61],[237,0.77],[213,0.79]],
+    vertices: [[272,0.47],[288,0.45],[290,0.67],[274,0.69]],
     arcEdges: [],
     centroid: null,
   },
@@ -223,7 +184,68 @@ const TERRITORY_POLYGONS = {
   },
   'Tsimpo': {
     band: 'middle',
-    vertices: [[340,0.43],[350,0.42],[350,0.67],[342,0.67]],
+    vertices: [[340,0.44],[353,0.43],[353,0.68],[341,0.68]],
+    arcEdges: [],
+    centroid: null,
+  },
+
+  // ── INNER BAND ──────────────────────────────────────────────────────────────
+
+  // Compact strongholds — sit inside the Imperial Basin crescent
+  'Arrakeen': {
+    band: 'inner',
+    vertices: [[22,0.30],[48,0.30],[46,0.46],[24,0.46]],
+    arcEdges: [],
+    centroid: null,
+  },
+  'Carthag': {
+    band: 'inner',
+    vertices: [[318,0.30],[342,0.30],[342,0.46],[318,0.46]],
+    arcEdges: [],
+    centroid: null,
+  },
+  'Hole in the Rock': {
+    band: 'inner',
+    vertices: [[60,0.175],[88,0.175],[84,0.30],[62,0.31]],
+    arcEdges: [[0,1]], arcR: R_POLAR,
+    centroid: null,
+  },
+  'Harg Pass': {
+    band: 'inner',
+    vertices: [[90,0.175],[128,0.175],[124,0.30],[93,0.31]],
+    arcEdges: [[0,1]], arcR: R_POLAR,
+    centroid: null,
+  },
+  // Isolated stronghold in the SE outer ring
+  "Tuek's Sietch": {
+    band: 'inner',
+    vertices: [[132,0.62],[157,0.60],[158,0.76],[133,0.78]],
+    arcEdges: [],
+    centroid: null,
+  },
+  // Full inner-ring depth — from Polar Sink edge to R_INNER
+  'Arsunt': {
+    band: 'inner',
+    vertices: [[240,0.175],[268,0.175],[268,0.46],[240,0.46]],
+    arcEdges: [[0,1]], arcR: R_POLAR,
+    centroid: null,
+  },
+  'Wind Pass': {
+    band: 'inner',
+    vertices: [[300,0.175],[320,0.175],[320,0.30],[300,0.30]],
+    arcEdges: [[0,1]], arcR: R_POLAR,
+    centroid: null,
+  },
+  'Wind Pass North': {
+    band: 'inner',
+    vertices: [[300,0.30],[320,0.30],[320,0.46],[300,0.46]],
+    arcEdges: [],
+    centroid: null,
+  },
+  // Isolated stronghold in the W outer ring (~7-8 o'clock)
+  'Habbanya Sietch': {
+    band: 'inner',
+    vertices: [[207,0.63],[225,0.61],[226,0.78],[208,0.80]],
     arcEdges: [],
     centroid: null,
   },
@@ -390,7 +412,7 @@ function SectorLines() {
 function RingCircles() {
   return (
     <g fill="none" strokeWidth={0.6}>
-      <circle cx={CX} cy={CY} r={R_POLAR}  stroke="#2a3a5a" />
+      <circle cx={CX} cy={CY} r={R_POLAR}  stroke="#a09050" />
       <circle cx={CX} cy={CY} r={R_INNER}  stroke="#1e1b12" />
       <circle cx={CX} cy={CY} r={R_MIDDLE} stroke="#1e1b12" />
       <circle cx={CX} cy={CY} r={R_OUTER}  stroke="#1e1b12" />
@@ -446,14 +468,14 @@ function TerritoryArc({ name, territory, forceEntries, isStorm, highlight, mode 
   let strokeW = 0.8
 
   if (isStronghold) {
-    fill   = '#3d1a05'
-    stroke = '#c8960a'
+    fill   = '#4A2C0A'
+    stroke = '#C8960A'
     strokeW = 1.8
   } else if (isRock) {
-    fill   = '#6b4218'
-    stroke = '#4a2e0c'
+    fill   = '#8B6420'
+    stroke = '#6B4C18'
   } else if (isSand) {
-    fill   = '#C4A570'
+    fill   = '#C8A96E'
     stroke = '#8a6830'
   }
 
@@ -529,7 +551,7 @@ function TerritoryArc({ name, territory, forceEntries, isStorm, highlight, mode 
         y={topY + lineH * 0.75}
         textAnchor="middle"
         dominantBaseline="central"
-        fill={isStronghold ? '#f0d060' : isSand ? '#3a1a05' : '#e8c880'}
+        fill={isStronghold ? '#f0d060' : isSand ? '#3a1a05' : '#F0E0B0'}
         fontSize={fontSize}
         fontWeight={isStronghold ? 'bold' : 'normal'}
         fontFamily="serif"
@@ -611,15 +633,15 @@ function TerritoryPoly({ name, territory, forceEntries, isStorm, highlight, mode
   let strokeW = 0.8
 
   if (isStronghold) {
-    fill    = '#3d1a05'
-    stroke  = '#c8960a'
+    fill    = '#4A2C0A'
+    stroke  = '#C8960A'
     strokeW = 1.8
   } else if (isSand) {
-    fill    = '#C4A570'
+    fill    = '#C8A96E'
     stroke  = '#8a6830'
   } else {
-    fill    = '#6b4218'
-    stroke  = '#4a2e0c'
+    fill    = '#8B6420'
+    stroke  = '#6B4C18'
   }
 
   if (isStorm && isSand && !territory.storm_exception) {
@@ -689,7 +711,7 @@ function TerritoryPoly({ name, territory, forceEntries, isStorm, highlight, mode
       <text
         x={cx} y={topY + lineH * 0.75}
         textAnchor="middle" dominantBaseline="central"
-        fill={isStronghold ? '#f0d060' : isSand ? '#3a1a05' : '#e8c880'}
+        fill={isStronghold ? '#f0d060' : isSand ? '#3a1a05' : '#F0E0B0'}
         fontSize={fontSize}
         fontWeight={isStronghold ? 'bold' : 'normal'}
         fontFamily="serif"
@@ -741,14 +763,14 @@ function TerritoryPoly({ name, territory, forceEntries, isStorm, highlight, mode
 function PolarSink({ forces }) {
   return (
     <g>
-      <circle cx={CX} cy={CY} r={R_POLAR} fill="#0c1220" stroke="#2a3a5a" strokeWidth={1.5} />
-      {/* Subtle octagon feel */}
-      <circle cx={CX} cy={CY} r={R_POLAR - 6} fill="none" stroke="#1a2a40" strokeWidth={0.8} strokeDasharray="3,3" />
+      <circle cx={CX} cy={CY} r={R_POLAR} fill="#D4C9A0" stroke="#a09050" strokeWidth={1.5} />
+      {/* Subtle inner ring */}
+      <circle cx={CX} cy={CY} r={R_POLAR - 6} fill="none" stroke="#a09050" strokeWidth={0.8} strokeDasharray="3,3" />
       <text
         x={CX} y={CY - 6}
         textAnchor="middle"
         dominantBaseline="central"
-        fill="#5a7a9a"
+        fill="#5a3a10"
         fontSize={8}
         fontWeight="bold"
         fontFamily="serif"
@@ -760,7 +782,7 @@ function PolarSink({ forces }) {
         x={CX} y={CY + 6}
         textAnchor="middle"
         dominantBaseline="central"
-        fill="#5a7a9a"
+        fill="#5a3a10"
         fontSize={8}
         fontWeight="bold"
         fontFamily="serif"
@@ -848,6 +870,10 @@ export default function GameBoard({
         {/* Board background disc */}
         <circle cx={CX} cy={CY} r={BR} fill="#1a1008" />
 
+        {/* Sand base layer — fills board interior with sand colour so no black
+            gaps appear where polygon vertices don't perfectly tile */}
+        <circle cx={CX} cy={CY} r={R_OUTER} fill="#C8A96E" />
+
         {/* Storm sector fill */}
         <StormSweep stormSector={stormSectorNum} />
 
@@ -919,15 +945,15 @@ export default function GameBoard({
       {/* Legend */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-2 py-1 border-t border-[#3a3020] text-[10px] text-gray-500 shrink-0">
         <span className="flex items-center gap-1">
-          <span className="inline-block w-2.5 h-2.5 rounded-sm border-2" style={{ borderColor: '#c8960a', background: '#3d1a05' }} />
+          <span className="inline-block w-2.5 h-2.5 rounded-sm border-2" style={{ borderColor: '#C8960A', background: '#4A2C0A' }} />
           Stronghold
         </span>
         <span className="flex items-center gap-1">
-          <span className="inline-block w-2.5 h-2.5 rounded-sm border" style={{ borderColor: '#4a2e0c', background: '#6b4218' }} />
+          <span className="inline-block w-2.5 h-2.5 rounded-sm border" style={{ borderColor: '#6B4C18', background: '#8B6420' }} />
           Rock
         </span>
         <span className="flex items-center gap-1">
-          <span className="inline-block w-2.5 h-2.5 rounded-sm border" style={{ borderColor: '#8a6830', background: '#C4A570' }} />
+          <span className="inline-block w-2.5 h-2.5 rounded-sm border" style={{ borderColor: '#8a6830', background: '#C8A96E' }} />
           Sand
         </span>
         <span className="flex items-center gap-1">
