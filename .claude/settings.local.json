@@ -78,7 +78,9 @@
       "Bash(curl -s http://127.0.0.1:8000/health)",
       "Bash(curl -s \"http://127.0.0.1:8000/api/games/8ef065db\")",
       "Bash(curl -s \"http://127.0.0.1:8000/api/games/73645a92\")",
-      "Bash(GAME_ID=\"d3fceed4-c3ba-49fa-a731-9da2708ab860\" curl -s -X POST \"http://127.0.0.1:8000/api/games/$GAME_ID/action\" -H \"Content-Type: application/json\" -d '{\"\"\"\"player_id\"\"\"\":\"\"\"\"bot1\"\"\"\",\"\"\"\"action_type\"\"\"\":\"\"\"\"select_traitor\"\"\"\",\"\"\"\"payload\"\"\"\":{\"\"\"\"traitor_card_id\"\"\"\":\"\"\"\"traitor_atreides_thufir_hawat\"\"\"\"}}')"
+      "Bash(GAME_ID=\"d3fceed4-c3ba-49fa-a731-9da2708ab860\" curl -s -X POST \"http://127.0.0.1:8000/api/games/$GAME_ID/action\" -H \"Content-Type: application/json\" -d '{\"\"\"\"player_id\"\"\"\":\"\"\"\"bot1\"\"\"\",\"\"\"\"action_type\"\"\"\":\"\"\"\"select_traitor\"\"\"\",\"\"\"\"payload\"\"\"\":{\"\"\"\"traitor_card_id\"\"\"\":\"\"\"\"traitor_atreides_thufir_hawat\"\"\"\"}}')",
+      "Bash(npx vite:*)",
+      "Bash(taskkill /F /IM node.exe)"
     ]
   }
 }
