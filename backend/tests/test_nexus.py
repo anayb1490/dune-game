@@ -477,7 +477,7 @@ class TestAllianceTerritoryConstraint:
         assert any(fg.territory_name == "Carthag" for fg in harkonnen.forces_on_board)
 
         with pytest.raises(ValueError, match="ally has forces"):
-            ship_forces(game, atreides_id, "Carthag", 11, 1)
+            ship_forces(game, atreides_id, "Carthag", 17, 1)
 
     def test_can_ship_to_unoccupied_territory(self, basic_game: GameState):
         """Atreides can still ship to a territory with no ally forces."""
@@ -489,7 +489,7 @@ class TestAllianceTerritoryConstraint:
         assert all(fg.territory_name != "Sietch Tabr" for fg in harkonnen.forces_on_board)
 
         # Should not raise
-        result = ship_forces(game, atreides_id, "Sietch Tabr", 8, 1)
+        result = ship_forces(game, atreides_id, "Sietch Tabr", 13, 1)
         atreides_after = next(p for p in result.players if p.faction == FactionName.ATREIDES)
         assert any(fg.territory_name == "Sietch Tabr" for fg in atreides_after.forces_on_board)
 
@@ -558,6 +558,6 @@ class TestAllianceTerritoryConstraint:
             move_forces(
                 game, atreides_id,
                 adj_name, from_sector,
-                "Carthag", 11,
+                "Carthag", 17,
                 regular_count=1,
             )

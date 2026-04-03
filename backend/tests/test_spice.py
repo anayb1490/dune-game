@@ -145,7 +145,7 @@ class TestShaiHulud:
         new_forces = list(atreides.forces_on_board) + [
             ForceGroup(
                 territory_name="The Great Flat",
-                sector=13,
+                sector=15,
                 regular_count=4,
             ),
         ]
@@ -272,12 +272,12 @@ class TestStormBlocking:
 
     def test_storm_blocks_spice_placement(self, game_at_spice_blow: GameState):
         """Territory in storm sector should receive no spice."""
-        # Storm is at sector 5; Imperial Basin has sectors [4, 5] — blocked
+        # Storm is at sector 1; Imperial Basin has sectors [0, 1, 2] — blocked
         card = _territory_card("Imperial Basin", 4)
         game = game_at_spice_blow.model_copy(update={
             "spice_deck": [card],
             "spice_discard": [],
-            "storm_sector": 5,
+            "storm_sector": 1,
         })
 
         result = resolve_spice_blow(game)

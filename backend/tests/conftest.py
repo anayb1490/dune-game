@@ -110,17 +110,15 @@ def six_player_advanced(six_player_configs: list[PlayerSetupConfig]) -> GameStat
 def game_with_forces_in_sand(six_player_basic: GameState) -> GameState:
     """
     A game where the Atreides player has forces manually placed in a sand
-    sector (sector 12, The Great Flat) so storm damage can be tested.
-    Storm starts at sector 5, so a move of 11 would reach sector 12
-    (counterclockwise: (5 - 11) % 18 = 12... actually let's just place
-    at sector 4 which is near the storm start).
+    sector (sector 15, The Great Flat) so storm damage can be tested.
+    Storm starts at sector 15, moving counterclockwise.
     """
     atreides = next(p for p in six_player_basic.players if p.faction == FactionName.ATREIDES)
-    # Add forces in The Great Flat at sector 13 (sand, not storm-protected)
+    # Add forces in The Great Flat at sector 15 (sand, not storm-protected)
     new_forces = list(atreides.forces_on_board) + [
         ForceGroup(
             territory_name="The Great Flat",
-            sector=13,
+            sector=15,
             regular_count=5,
             special_count=0,
         ),
@@ -135,7 +133,7 @@ def game_with_forces_in_sand(six_player_basic: GameState) -> GameState:
     ]
     return six_player_basic.model_copy(update={
         "players": updated_players,
-        "storm_sector": 15,  # Storm at sector 15, moving counterclockwise
+        "storm_sector": 17,  # Storm at sector 17, moving counterclockwise
     })
 
 

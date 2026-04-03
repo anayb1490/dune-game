@@ -1,14 +1,11 @@
 /**
- * GameBoard — Rebuilt circular SVG board for the Dune board game.
- * Faithful recreation of the original GF9 board aesthetic:
- *   - Warm parchment color palette
- *   - Organic territory shapes
- *   - Decorative outer border with storm track
- *   - Stronghold fortress markers
- *   - Authentic sector numbering
+ * GameBoard — Pure SVG circular board for the Dune board game.
+ *
+ * Layered rendering with organic border displacement filters for a
+ * hand-drawn, professional digital board game aesthetic.
  *
  * Coordinate system:
- *   Centre: (350, 350), Sector 0 at 12 o'clock, clockwise, 20° per sector.
+ *   Centre: (350, 350), Sector 0 at 12 o'clock, clockwise, 20 deg per sector.
  */
 
 // ─── Faction colours ────────────────────────────────────────────────────────────
@@ -30,41 +27,41 @@ const FACTION_LEGEND_LABELS = {
   emperor:       'Emperor',
 }
 
-// ─── Board colour palette (original board aesthetic) ────────────────────────────
+// ─── Colour palette ─────────────────────────────────────────────────────────────
 const C = {
   // Territory fills
-  sand:           '#D4B878',
-  sandDark:       '#C8A860',
-  rock:           '#BFA060',
-  rockDark:       '#A08848',
-  stronghold:     '#6B4A28',
-  strongholdAlt:  '#7B5A30',
-
-  // Borders
-  borderThick:    '#4A3520',
-  borderThin:     '#6B5030',
-  borderFaint:    '#8B7040',
+  sand:       '#D4B878',
+  sandDark:   '#C8A860',
+  rock:       '#8B7040',
+  rockDark:   '#7A6030',
+  stronghold: '#5A3818',
+  strongholdAlt: '#6B4828',
 
   // Polar Sink
-  polar:          '#E8DCC8',
-  polarStroke:    '#A09060',
+  polar:      '#E8DCC8',
+  polarStroke:'#A09060',
+
+  // Borders
+  border:     '#3A2510',
+  borderFaint:'#6B5030',
+  borderThick:'#2A1808',
 
   // Frame & background
-  frameDark:      '#1A1008',
-  frameMid:       '#2A1E10',
-  frameAccent:    '#8B7040',
+  frameDark:  '#1A1008',
+  frameMid:   '#2A1E10',
+  frameAccent:'#8B7040',
 
   // Text
-  textDark:       '#3A2510',
-  textMid:        '#5A4020',
-  textLight:      '#D4BC88',
-  textGold:       '#D4A840',
+  textDark:   '#3A2510',
+  textMid:    '#5A4020',
+  textLight:  '#D4BC88',
+  textGold:   '#D4A840',
 
-  // Indicators
-  spice:          '#C85000',
-  spiceGlow:      '#FF8C00',
-  storm:          '#CC3333',
-  stormFill:      '#CC333320',
+  // Game indicators
+  spice:      '#C85000',
+  spiceGlow:  '#FF8C00',
+  storm:      '#CC3333',
+  stormFill:  '#CC333320',
 }
 
 // ─── Board geometry ─────────────────────────────────────────────────────────────
@@ -76,8 +73,94 @@ const R_POLAR  = Math.round(BR * 0.175)   // 54
 const R_INNER  = Math.round(BR * 0.46)    // 143
 const R_MIDDLE = Math.round(BR * 0.68)    // 211
 const R_OUTER  = Math.round(BR * 0.915)   // 284
-const R_FRAME  = 332                       // outer frame edge
-const R_TRACK  = BR + 4                   // storm track inner edge
+const R_FRAME  = 332
+
+// ─── SVG viewBox ────────────────────────────────────────────────────────────────
+const VB_W = 700
+const VB_H = 730
+
+// ─── Territory type map (client-side, matching backend data) ────────────────────
+const TERRITORY_TYPES = {
+  'Polar Sink':          'polar_sink',
+  'Arrakeen':            'stronghold',
+  'Carthag':             'stronghold',
+  'Sietch Tabr':         'stronghold',
+  'Habbanya Sietch':     'stronghold',
+  "Tuek's Sietch":       'stronghold',
+  'Tsimpo':              'rock',
+  'Harg Pass':           'rock',
+  'Cielago East':        'rock',
+  'Cielago West':        'rock',
+  'Wind Pass':           'rock',
+  'Wind Pass North':     'rock',
+  'Broken Land':         'rock',
+  'Rim Wall West':       'rock',
+  'Sihaya Ridge':        'rock',
+  'Hole in the Rock':    'rock',
+  'Shield Wall':         'rock',
+  'Pasty Mesa':          'rock',
+  'False Wall East':     'rock',
+  'South Mesa':          'rock',
+  'False Wall South':    'rock',
+  'Cielago North':       'rock',
+  'False Wall West':     'rock',
+  'Bight of the Cliff':  'rock',
+  'Plastic Basin':       'rock',
+  'Imperial Basin':      'sand',
+  'Arsunt':              'sand',
+  'Hagga Basin':         'sand',
+  'Old Gap':             'sand',
+  'Basin':               'sand',
+  'Gara Kulon':          'sand',
+  'Red Chasm':           'sand',
+  'The Minor Erg':       'sand',
+  'Cielago Depression':  'sand',
+  'Cielago South':       'sand',
+  'Meridian':            'sand',
+  'Habbanya Ridge Flat': 'sand',
+  'Habbanya Erg':        'sand',
+  'The Greater Flat':    'sand',
+  'The Great Flat':      'sand',
+  'Funeral Plain':       'sand',
+}
+
+// ─── Label abbreviations for multi-line territory names ─────────────────────────
+const LABEL_ABBREV = {
+  'Imperial Basin':      ['Imperial', 'Basin'],
+  'Rim Wall West':       ['Rim Wall', 'West'],
+  'Sihaya Ridge':        ['Sihaya', 'Ridge'],
+  'Shield Wall':         ['Shield', 'Wall'],
+  'Pasty Mesa':          ['Pasty', 'Mesa'],
+  'False Wall East':     ['False Wall', 'East'],
+  'South Mesa':          ['South', 'Mesa'],
+  'False Wall South':    ['False Wall', 'South'],
+  'Cielago North':       ['Cielago', 'North'],
+  'False Wall West':     ['False Wall', 'West'],
+  'Hagga Basin':         ['Hagga', 'Basin'],
+  'Bight of the Cliff':  ['Bight of', 'the Cliff'],
+  'Sietch Tabr':         ['Sietch', 'Tabr'],
+  'Plastic Basin':       ['Plastic', 'Basin'],
+  'Broken Land':         ['Broken', 'Land'],
+  'Hole in the Rock':    ['Hole in', 'the Rock'],
+  'Harg Pass':           ['Harg', 'Pass'],
+  "Tuek's Sietch":       ["Tuek's", 'Sietch'],
+  'Cielago East':        ['Cielago', 'East'],
+  'Cielago West':        ['Cielago', 'West'],
+  'Habbanya Sietch':     ['Habbanya', 'Sietch'],
+  'Wind Pass':           ['Wind', 'Pass'],
+  'Wind Pass North':     ['Wind Pass', 'North'],
+  'Old Gap':             ['Old', 'Gap'],
+  'Gara Kulon':          ['Gara', 'Kulon'],
+  'Red Chasm':           ['Red', 'Chasm'],
+  'The Minor Erg':       ['The Minor', 'Erg'],
+  'Cielago Depression':  ['Cielago', 'Depress.'],
+  'Cielago South':       ['Cielago', 'South'],
+  'Habbanya Ridge Flat': ['Habbanya', 'Ridge Flat'],
+  'Habbanya Erg':        ['Habbanya', 'Erg'],
+  'The Greater Flat':    ['The Greater', 'Flat'],
+  'The Great Flat':      ['The Great', 'Flat'],
+  'Funeral Plain':       ['Funeral', 'Plain'],
+}
 
 // ─── Math helpers ───────────────────────────────────────────────────────────────
 
@@ -89,7 +172,7 @@ function degToRad(deg) {
   return (deg - 90) * (Math.PI / 180)
 }
 
-/** Convert (angle°, normR) → SVG pixel coords. 0° = 12 o'clock, clockwise. */
+/** Convert (angle deg, normR) to SVG pixel coords. 0 deg = 12 o'clock, clockwise. */
 function polyPt(deg, normR) {
   const rad = degToRad(deg)
   const r = normR * BR
@@ -126,8 +209,7 @@ function arcCentroid(cx, cy, ri, ro, s0, s1) {
 
 /**
  * SVG path for a polygon territory.
- * arcEdges: [[i, j, radius]…] — vertex-index pairs drawn as circular arcs.
- * If radius > 0: CW sweep. If radius < 0: CCW sweep.
+ * arcEdges: [[i, j, radius]] vertex-index pairs drawn as circular arcs.
  */
 function makePolyPath(vertices, arcEdges = []) {
   const pts = vertices.map(([d, r]) => polyPt(d, r))
@@ -173,53 +255,173 @@ function polyCentroid(vertices) {
 
 // ─── Territory definitions ──────────────────────────────────────────────────────
 //
-// TERRITORY_POLYGONS: Territories with custom polygon shapes.
-//   vertices: [angleDeg, normRadius]  (0° = 12 o'clock, clockwise).
-//   arcEdges: [[i, j, radius]…] — vertex pairs drawn as arcs.
-//   band: render-pass bucket ('inner' | 'middle' | 'outer').
-//   centroid: optional manual label anchor [deg, normR].
+// All territories use exact sector-aligned boundaries to guarantee zero gaps.
+//   • Sector boundaries at multiples of 20° (sector N = N×20°)
+//   • Ring boundaries at exact normalised radii: 0.175, 0.46, 0.68, 0.915
+//   • Adjacent territories share identical boundary vertices
+//   • Midpoint vertices on each arc edge approximate circular curves
+//   • The organicBorders displacement filter adds visual waviness
 //
-// TERRITORY_ARCS: All territories with sector-based arc bounds.
-//   Used as fallback when no polygon is defined, and for centroid computation.
+// INNER  band: polar sink (0.175) → inner ring (0.46)
+// MIDDLE band: inner ring  (0.46) → middle ring (0.68)
+// OUTER  band: middle ring (0.68) → outer ring  (0.915)
 
 const TERRITORY_POLYGONS = {
 
-  // ── MIDDLE BAND ──────────────────────────────────────────────────────────────
+  // ── INNER BAND (polar sink 0.175 → inner ring 0.46) ──────────────────────────
+  // Arc edges along the polar sink ensure the inner boundary follows the circle.
+  // Gap at 270°→300° is intentional (rock underlay, no distinct territory).
 
   'Imperial Basin': {
-    band: 'middle',
+    band: 'inner',
     vertices: [
-      [348, 0.53],
-      [  4, 0.56],
-      [ 30, 0.55],
-      [ 58, 0.54],
-      [ 78, 0.49],
-      [ 78, 0.28],
-      [ 40, 0.29],
-      [  0, 0.29],
-      [348, 0.28],
+      [0, 0.175], [20, 0.175], [40, 0.175], [60, 0.175],
+      [60, 0.46], [40, 0.46], [20, 0.46], [0, 0.46],
+    ],
+    arcEdges: [[0,1,R_POLAR],[1,2,R_POLAR],[2,3,R_POLAR]],
+    centroid: [30, 0.32],
+  },
+
+  'Hole in the Rock': {
+    band: 'inner',
+    vertices: [
+      [60, 0.175], [75, 0.175], [90, 0.175],
+      [90, 0.46], [75, 0.46], [60, 0.46],
+    ],
+    arcEdges: [[0,1,R_POLAR],[1,2,R_POLAR]],
+    centroid: [75, 0.32],
+  },
+
+  'Harg Pass': {
+    band: 'inner',
+    vertices: [
+      [90, 0.175], [110, 0.175], [130, 0.175],
+      [130, 0.46], [110, 0.46], [90, 0.46],
+    ],
+    arcEdges: [[0,1,R_POLAR],[1,2,R_POLAR]],
+    centroid: [110, 0.32],
+  },
+
+  "Tuek's Sietch": {
+    band: 'inner',
+    vertices: [
+      [130, 0.175], [145, 0.175], [160, 0.175],
+      [160, 0.46], [145, 0.46], [130, 0.46],
+    ],
+    arcEdges: [[0,1,R_POLAR],[1,2,R_POLAR]],
+    centroid: [145, 0.32],
+  },
+
+  'Cielago East': {
+    band: 'inner',
+    vertices: [
+      [160, 0.175], [175, 0.175], [190, 0.175],
+      [190, 0.46], [175, 0.46], [160, 0.46],
+    ],
+    arcEdges: [[0,1,R_POLAR],[1,2,R_POLAR]],
+    centroid: [175, 0.32],
+  },
+
+  'Cielago West': {
+    band: 'inner',
+    vertices: [
+      [190, 0.175], [200, 0.175], [210, 0.175],
+      [210, 0.46], [200, 0.46], [190, 0.46],
+    ],
+    arcEdges: [[0,1,R_POLAR],[1,2,R_POLAR]],
+    centroid: [200, 0.32],
+  },
+
+  'Habbanya Sietch': {
+    band: 'inner',
+    vertices: [
+      [210, 0.175], [225, 0.175], [240, 0.175],
+      [240, 0.46], [225, 0.46], [210, 0.46],
+    ],
+    arcEdges: [[0,1,R_POLAR],[1,2,R_POLAR]],
+    centroid: [225, 0.32],
+  },
+
+  'Arsunt': {
+    band: 'inner',
+    vertices: [
+      [240, 0.175], [255, 0.175], [270, 0.175],
+      [270, 0.46], [255, 0.46], [240, 0.46],
+    ],
+    arcEdges: [[0,1,R_POLAR],[1,2,R_POLAR]],
+    centroid: [255, 0.32],
+  },
+
+  'Wind Pass': {
+    band: 'inner',
+    vertices: [
+      [300, 0.175], [310, 0.175], [320, 0.175],
+      [320, 0.46], [310, 0.46], [300, 0.46],
+    ],
+    arcEdges: [[0,1,R_POLAR],[1,2,R_POLAR]],
+    centroid: [310, 0.32],
+  },
+
+  'Wind Pass North': {
+    band: 'inner',
+    vertices: [
+      [320, 0.175], [330, 0.175], [340, 0.175],
+      [340, 0.46], [330, 0.46], [320, 0.46],
+    ],
+    arcEdges: [[0,1,R_POLAR],[1,2,R_POLAR]],
+    centroid: [330, 0.32],
+  },
+
+  'Carthag': {
+    band: 'inner',
+    vertices: [
+      [340, 0.175], [350, 0.175], [360, 0.175],
+      [360, 0.46], [350, 0.46], [340, 0.46],
+    ],
+    arcEdges: [[0,1,R_POLAR],[1,2,R_POLAR]],
+    centroid: [350, 0.32],
+  },
+
+  // ── INSET STRONGHOLD (drawn on top of inner band) ─────────────────────────────
+
+  'Arrakeen': {
+    band: 'inset',
+    vertices: [
+      [25, 0.24], [45, 0.24], [47, 0.34], [45, 0.44],
+      [25, 0.44], [23, 0.34],
     ],
     arcEdges: [],
-    centroid: [20, 0.42],
+    centroid: [35, 0.35],
+  },
+
+  // ── MIDDLE BAND (inner ring 0.46 → middle ring 0.68) ──────────────────────────
+  // Full 360° tiling — no gaps.  Adjacent territories share boundary angles.
+
+  'Broken Land': {
+    band: 'middle',
+    vertices: [
+      [350, 0.46], [10, 0.46], [30, 0.46],
+      [30, 0.68], [10, 0.68], [350, 0.68],
+    ],
+    arcEdges: [],
+    centroid: [10, 0.57],
   },
 
   'Rim Wall West': {
     band: 'middle',
     vertices: [
-      [24, 0.46], [56, 0.46],
-      [58, 0.54], [56, 0.66],
-      [24, 0.67], [22, 0.53],
+      [30, 0.46], [45, 0.46], [60, 0.46],
+      [60, 0.68], [45, 0.68], [30, 0.68],
     ],
     arcEdges: [],
-    centroid: [40, 0.56],
+    centroid: [45, 0.57],
   },
 
   'Sihaya Ridge': {
     band: 'middle',
     vertices: [
-      [60, 0.46], [78, 0.46],
-      [80, 0.49], [80, 0.67],
-      [60, 0.67],
+      [60, 0.46], [70, 0.46], [80, 0.46],
+      [80, 0.68], [70, 0.68], [60, 0.68],
     ],
     arcEdges: [],
     centroid: [70, 0.57],
@@ -228,9 +430,8 @@ const TERRITORY_POLYGONS = {
   'Shield Wall': {
     band: 'middle',
     vertices: [
-      [82, 0.46], [98, 0.46],
-      [100, 0.50], [99, 0.67],
-      [83, 0.68], [81, 0.50],
+      [80, 0.46], [90, 0.46], [100, 0.46],
+      [100, 0.68], [90, 0.68], [80, 0.68],
     ],
     arcEdges: [],
     centroid: [90, 0.57],
@@ -239,49 +440,48 @@ const TERRITORY_POLYGONS = {
   'Pasty Mesa': {
     band: 'middle',
     vertices: [
-      [100, 0.46], [118, 0.44],
-      [120, 0.67], [100, 0.68],
+      [100, 0.46], [110, 0.46], [120, 0.46],
+      [120, 0.68], [110, 0.68], [100, 0.68],
     ],
     arcEdges: [],
-    centroid: [110, 0.56],
+    centroid: [110, 0.57],
   },
 
   'False Wall East': {
     band: 'middle',
     vertices: [
-      [120, 0.42], [138, 0.40],
-      [140, 0.67], [122, 0.68],
+      [120, 0.46], [130, 0.46], [140, 0.46],
+      [140, 0.68], [130, 0.68], [120, 0.68],
     ],
     arcEdges: [],
-    centroid: [130, 0.54],
+    centroid: [130, 0.57],
   },
 
   'South Mesa': {
     band: 'middle',
     vertices: [
-      [140, 0.46], [158, 0.44],
-      [160, 0.58], [158, 0.67],
-      [140, 0.68],
+      [140, 0.46], [150, 0.46], [160, 0.46],
+      [160, 0.68], [150, 0.68], [140, 0.68],
     ],
     arcEdges: [],
-    centroid: [149, 0.56],
+    centroid: [150, 0.57],
   },
 
   'False Wall South': {
     band: 'middle',
     vertices: [
-      [160, 0.42], [178, 0.40],
-      [180, 0.67], [162, 0.68], [160, 0.58],
+      [160, 0.46], [170, 0.46], [180, 0.46],
+      [180, 0.68], [170, 0.68], [160, 0.68],
     ],
     arcEdges: [],
-    centroid: [170, 0.54],
+    centroid: [170, 0.57],
   },
 
   'Cielago North': {
     band: 'middle',
     vertices: [
-      [180, 0.46], [210, 0.46],
-      [210, 0.68], [180, 0.68],
+      [180, 0.46], [195, 0.46], [210, 0.46],
+      [210, 0.68], [195, 0.68], [180, 0.68],
     ],
     arcEdges: [],
     centroid: [195, 0.57],
@@ -290,192 +490,72 @@ const TERRITORY_POLYGONS = {
   'False Wall West': {
     band: 'middle',
     vertices: [
-      [218, 0.40], [236, 0.38],
-      [238, 0.64], [220, 0.65],
+      [210, 0.46], [225, 0.46], [240, 0.46],
+      [240, 0.68], [225, 0.68], [210, 0.68],
     ],
     arcEdges: [],
-    centroid: [228, 0.52],
+    centroid: [225, 0.57],
   },
 
   'Hagga Basin': {
     band: 'middle',
     vertices: [
-      [240, 0.46], [268, 0.46],
-      [268, 0.62], [254, 0.66], [240, 0.60],
+      [240, 0.46], [255, 0.46], [270, 0.46],
+      [270, 0.68], [255, 0.68], [240, 0.68],
     ],
     arcEdges: [],
-    centroid: [254, 0.54],
-  },
-
-  'Bight of the Cliff': {
-    band: 'middle',
-    vertices: [
-      [290, 0.46], [308, 0.46],
-      [310, 0.67], [292, 0.68],
-    ],
-    arcEdges: [],
-    centroid: [300, 0.56],
+    centroid: [255, 0.57],
   },
 
   'Sietch Tabr': {
     band: 'middle',
     vertices: [
-      [270, 0.47], [288, 0.46],
-      [290, 0.68], [272, 0.69],
+      [270, 0.46], [280, 0.46], [290, 0.46],
+      [290, 0.68], [280, 0.68], [270, 0.68],
     ],
     arcEdges: [],
     centroid: [280, 0.57],
   },
 
+  'Bight of the Cliff': {
+    band: 'middle',
+    vertices: [
+      [290, 0.46], [300, 0.46], [310, 0.46],
+      [310, 0.68], [300, 0.68], [290, 0.68],
+    ],
+    arcEdges: [],
+    centroid: [300, 0.57],
+  },
+
   'Plastic Basin': {
     band: 'middle',
     vertices: [
-      [310, 0.44], [338, 0.42],
-      [340, 0.66], [312, 0.67],
+      [310, 0.46], [325, 0.46], [340, 0.46],
+      [340, 0.68], [325, 0.68], [310, 0.68],
     ],
     arcEdges: [],
-    centroid: [325, 0.55],
+    centroid: [325, 0.57],
   },
 
   'Tsimpo': {
     band: 'middle',
     vertices: [
-      [340, 0.44], [352, 0.44],
-      [354, 0.67], [342, 0.67],
+      [340, 0.46], [345, 0.46], [350, 0.46],
+      [350, 0.68], [345, 0.68], [340, 0.68],
     ],
     arcEdges: [],
-    centroid: [347, 0.55],
+    centroid: [345, 0.57],
   },
 
-  'Broken Land': {
-    band: 'middle',
-    vertices: [
-      [354, 0.46], [370, 0.46],
-      [370, 0.68], [354, 0.68],
-    ],
-    arcEdges: [],
-    centroid: [2, 0.57],
-  },
-
-  // ── INNER BAND ────────────────────────────────────────────────────────────────
-
-  'Arrakeen': {
-    band: 'inner',
-    vertices: [
-      [24, 0.30], [48, 0.30],
-      [46, 0.46], [24, 0.46],
-    ],
-    arcEdges: [],
-    centroid: [36, 0.38],
-  },
-
-  'Carthag': {
-    band: 'inner',
-    vertices: [
-      [316, 0.30], [342, 0.30],
-      [342, 0.46], [316, 0.46],
-    ],
-    arcEdges: [],
-    centroid: [329, 0.38],
-  },
-
-  'Hole in the Rock': {
-    band: 'inner',
-    vertices: [
-      [60, 0.175], [88, 0.175],
-      [84, 0.30], [62, 0.31],
-    ],
-    arcEdges: [[0, 1, R_POLAR]],
-    centroid: [74, 0.24],
-  },
-
-  'Harg Pass': {
-    band: 'inner',
-    vertices: [
-      [90, 0.175], [130, 0.175],
-      [126, 0.38], [93, 0.38],
-    ],
-    arcEdges: [[0, 1, R_POLAR]],
-    centroid: [110, 0.28],
-  },
-
-  "Tuek's Sietch": {
-    band: 'inset',
-    vertices: [
-      [134, 0.64], [155, 0.62],
-      [156, 0.78], [135, 0.80],
-    ],
-    arcEdges: [],
-    centroid: [145, 0.71],
-  },
-
-  'Cielago East': {
-    band: 'inner',
-    vertices: [
-      [160, 0.175], [192, 0.175],
-      [190, 0.44], [162, 0.44],
-    ],
-    arcEdges: [[0, 1, R_POLAR]],
-    centroid: [176, 0.31],
-  },
-
-  'Cielago West': {
-    band: 'inner',
-    vertices: [
-      [194, 0.175], [212, 0.175],
-      [210, 0.44], [194, 0.44],
-    ],
-    arcEdges: [[0, 1, R_POLAR]],
-    centroid: [203, 0.31],
-  },
-
-  'Habbanya Sietch': {
-    band: 'inset',
-    vertices: [
-      [210, 0.64], [228, 0.62],
-      [229, 0.80], [211, 0.82],
-    ],
-    arcEdges: [],
-    centroid: [220, 0.72],
-  },
-
-  'Arsunt': {
-    band: 'inner',
-    vertices: [
-      [240, 0.175], [268, 0.175],
-      [268, 0.46], [240, 0.46],
-    ],
-    arcEdges: [[0, 1, R_POLAR]],
-    centroid: [254, 0.32],
-  },
-
-  'Wind Pass': {
-    band: 'inner',
-    vertices: [
-      [300, 0.175], [316, 0.175],
-      [316, 0.30], [300, 0.30],
-    ],
-    arcEdges: [[0, 1, R_POLAR]],
-    centroid: [308, 0.24],
-  },
-
-  'Wind Pass North': {
-    band: 'inner',
-    vertices: [
-      [300, 0.30], [316, 0.30],
-      [316, 0.46], [300, 0.46],
-    ],
-    arcEdges: [],
-    centroid: [308, 0.38],
-  },
-
-  // ── OUTER BAND ────────────────────────────────────────────────────────────────
+  // ── OUTER BAND (middle ring 0.68 → outer ring 0.915) ─────────────────────────
+  // Full 360° tiling.  Boundary angles differ from middle band in places
+  // (e.g. Meridian / Habbanya Ridge Flat split at 246°).
 
   'Old Gap': {
     band: 'outer',
     vertices: [
-      [350, 0.68], [30, 0.68],
-      [30, 0.92], [350, 0.92],
+      [350, 0.68], [10, 0.68], [30, 0.68],
+      [30, 0.915], [10, 0.915], [350, 0.915],
     ],
     arcEdges: [],
     centroid: [10, 0.80],
@@ -484,8 +564,8 @@ const TERRITORY_POLYGONS = {
   'Basin': {
     band: 'outer',
     vertices: [
-      [30, 0.68], [58, 0.68],
-      [60, 0.92], [30, 0.92],
+      [30, 0.68], [45, 0.68], [60, 0.68],
+      [60, 0.915], [45, 0.915], [30, 0.915],
     ],
     arcEdges: [],
     centroid: [45, 0.80],
@@ -494,8 +574,8 @@ const TERRITORY_POLYGONS = {
   'Gara Kulon': {
     band: 'outer',
     vertices: [
-      [60, 0.68], [90, 0.68],
-      [90, 0.92], [60, 0.92],
+      [60, 0.68], [75, 0.68], [90, 0.68],
+      [90, 0.915], [75, 0.915], [60, 0.915],
     ],
     arcEdges: [],
     centroid: [75, 0.80],
@@ -504,8 +584,8 @@ const TERRITORY_POLYGONS = {
   'Red Chasm': {
     band: 'outer',
     vertices: [
-      [90, 0.68], [120, 0.68],
-      [120, 0.92], [90, 0.92],
+      [90, 0.68], [105, 0.68], [120, 0.68],
+      [120, 0.915], [105, 0.915], [90, 0.915],
     ],
     arcEdges: [],
     centroid: [105, 0.80],
@@ -514,48 +594,48 @@ const TERRITORY_POLYGONS = {
   'The Minor Erg': {
     band: 'outer',
     vertices: [
-      [120, 0.68], [160, 0.68],
-      [160, 0.92], [120, 0.92],
+      [120, 0.68], [140, 0.68], [160, 0.68],
+      [160, 0.915], [140, 0.915], [120, 0.915],
     ],
     arcEdges: [],
-    centroid: [140, 0.82],
+    centroid: [140, 0.80],
   },
 
   'Cielago Depression': {
     band: 'outer',
     vertices: [
-      [160, 0.68], [192, 0.68],
-      [192, 0.92], [160, 0.92],
+      [160, 0.68], [175, 0.68], [190, 0.68],
+      [190, 0.915], [175, 0.915], [160, 0.915],
     ],
     arcEdges: [],
-    centroid: [176, 0.82],
+    centroid: [175, 0.80],
   },
 
   'Cielago South': {
     band: 'outer',
     vertices: [
-      [192, 0.68], [222, 0.68],
-      [222, 0.92], [192, 0.92],
+      [190, 0.68], [205, 0.68], [220, 0.68],
+      [220, 0.915], [205, 0.915], [190, 0.915],
     ],
     arcEdges: [],
-    centroid: [207, 0.82],
+    centroid: [205, 0.80],
   },
 
   'Meridian': {
     band: 'outer',
     vertices: [
-      [222, 0.68], [246, 0.68],
-      [246, 0.92], [222, 0.92],
+      [220, 0.68], [233, 0.68], [246, 0.68],
+      [246, 0.915], [233, 0.915], [220, 0.915],
     ],
     arcEdges: [],
-    centroid: [234, 0.80],
+    centroid: [233, 0.80],
   },
 
   'Habbanya Ridge Flat': {
     band: 'outer',
     vertices: [
-      [246, 0.68], [270, 0.68],
-      [270, 0.92], [246, 0.92],
+      [246, 0.68], [258, 0.68], [270, 0.68],
+      [270, 0.915], [258, 0.915], [246, 0.915],
     ],
     arcEdges: [],
     centroid: [258, 0.80],
@@ -564,8 +644,8 @@ const TERRITORY_POLYGONS = {
   'Habbanya Erg': {
     band: 'outer',
     vertices: [
-      [270, 0.68], [290, 0.69],
-      [290, 0.92], [270, 0.92],
+      [270, 0.68], [280, 0.68], [290, 0.68],
+      [290, 0.915], [280, 0.915], [270, 0.915],
     ],
     arcEdges: [],
     centroid: [280, 0.80],
@@ -574,8 +654,8 @@ const TERRITORY_POLYGONS = {
   'The Greater Flat': {
     band: 'outer',
     vertices: [
-      [290, 0.68], [310, 0.68],
-      [310, 0.92], [290, 0.92],
+      [290, 0.68], [300, 0.68], [310, 0.68],
+      [310, 0.915], [300, 0.915], [290, 0.915],
     ],
     arcEdges: [],
     centroid: [300, 0.80],
@@ -584,8 +664,8 @@ const TERRITORY_POLYGONS = {
   'The Great Flat': {
     band: 'outer',
     vertices: [
-      [310, 0.68], [330, 0.68],
-      [330, 0.92], [310, 0.92],
+      [310, 0.68], [320, 0.68], [330, 0.68],
+      [330, 0.915], [320, 0.915], [310, 0.915],
     ],
     arcEdges: [],
     centroid: [320, 0.80],
@@ -594,15 +674,15 @@ const TERRITORY_POLYGONS = {
   'Funeral Plain': {
     band: 'outer',
     vertices: [
-      [330, 0.68], [350, 0.68],
-      [350, 0.92], [330, 0.92],
+      [330, 0.68], [340, 0.68], [350, 0.68],
+      [350, 0.915], [340, 0.915], [330, 0.915],
     ],
     arcEdges: [],
     centroid: [340, 0.80],
   },
 }
 
-// Arc definitions — used for fallback rendering and centroid when no polygon exists
+// Arc definitions — fallback for territories without polygon data
 const TERRITORY_ARCS = {
   // INNER BAND
   'Arrakeen':          { s0:  1.5, s1:  3.0, ri: R_POLAR,  ro: R_INNER },
@@ -649,45 +729,6 @@ const TERRITORY_ARCS = {
   'Funeral Plain':     { s0: 16.5, s1: 17.5, ri: R_MIDDLE, ro: R_OUTER },
 }
 
-// ─── Label abbreviations ────────────────────────────────────────────────────────
-
-const LABEL_ABBREV = {
-  'Habbanya Sietch':     'Habbanya\nSietch',
-  'Habbanya Erg':        'Habbanya\nErg',
-  'Cielago Depression':  'Cielago\nDepression',
-  'Cielago North':       'Cielago\nNorth',
-  'Cielago South':       'Cielago\nSouth',
-  'Cielago East':        'Cielago\nEast',
-  'Cielago West':        'Cielago\nWest',
-  'Wind Pass North':     'Wind Pass\nNorth',
-  'False Wall East':     'False Wall\nEast',
-  'False Wall West':     'False Wall\nWest',
-  'False Wall South':    'False Wall\nSouth',
-  "Tuek's Sietch":       "Tuek's\nSietch",
-  'Plastic Basin':       'Plastic\nBasin',
-  'Hole in the Rock':    'Hole in\nthe Rock',
-  'Sihaya Ridge':        'Sihaya\nRidge',
-  'Broken Land':         'Broken\nLand',
-  'Imperial Basin':      'Imperial\nBasin',
-  'Bight of the Cliff':  'Bight of\nthe Cliff',
-  'Sietch Tabr':         'Sietch\nTabr',
-  'Rim Wall West':       'Rim Wall\nWest',
-  'The Greater Flat':    'The\nGreater Flat',
-  'The Great Flat':      'The\nGreat Flat',
-  'The Minor Erg':       'The Minor\nErg',
-  'Habbanya Ridge Flat': 'Habbanya\nRidge Flat',
-  'Funeral Plain':       'Funeral\nPlain',
-  'Wind Pass':           'Wind\nPass',
-  'Shield Wall':         'Shield\nWall',
-  'Pasty Mesa':          'Pasty\nMesa',
-  'South Mesa':          'South\nMesa',
-  'Hagga Basin':         'Hagga\nBasin',
-  'Red Chasm':           'Red\nChasm',
-  'Gara Kulon':          'Gara\nKulon',
-  'Polar Sink':          'Polar\nSink',
-  'Old Gap':             'Old\nGap',
-}
-
 // ─── Force map builder ──────────────────────────────────────────────────────────
 
 function buildForceMap(players) {
@@ -713,51 +754,104 @@ function buildForceMap(players) {
   return map
 }
 
-// ─── SVG Definitions (gradients, filters) ───────────────────────────────────────
+// ─── Centroid calculator ────────────────────────────────────────────────────────
+
+function getTerritoryCentroid(name) {
+  const poly = TERRITORY_POLYGONS[name]
+  if (poly) {
+    if (poly.centroid) {
+      return polyPt(poly.centroid[0], poly.centroid[1])
+    }
+    return polyCentroid(poly.vertices)
+  }
+  const arc = TERRITORY_ARCS[name]
+  if (arc) {
+    return arcCentroid(CX, CY, arc.ri, arc.ro, arc.s0, arc.s1)
+  }
+  return { x: CX, y: CY }
+}
+
+// ─── Path calculator ────────────────────────────────────────────────────────────
+
+function getTerritoryPath(name) {
+  const poly = TERRITORY_POLYGONS[name]
+  if (poly) {
+    return makePolyPath(poly.vertices, poly.arcEdges)
+  }
+  const arc = TERRITORY_ARCS[name]
+  if (arc) {
+    return makeArcPath(CX, CY, arc.ri, arc.ro, arc.s0, arc.s1)
+  }
+  return null
+}
+
+// ─── Get fill colour for a territory based on its type ──────────────────────────
+
+function getTerritoryFill(name) {
+  const type = TERRITORY_TYPES[name]
+  if (type === 'stronghold') return C.stronghold
+  if (type === 'sand') return C.sand
+  if (type === 'rock') return C.rock
+  return C.rock // fallback
+}
+
+// ─── SVG Definitions ────────────────────────────────────────────────────────────
 
 function BoardDefs() {
   return (
     <defs>
-      {/* Parchment radial gradient */}
-      <radialGradient id="parchmentGrad" cx="50%" cy="50%" r="55%">
-        <stop offset="0%"  stopColor="#E8D8B0" />
-        <stop offset="40%" stopColor="#D8C490" />
-        <stop offset="75%" stopColor="#C8B478" />
-        <stop offset="100%" stopColor="#B8A468" />
+      {/* Parchment gradient */}
+      <radialGradient id="parchmentGrad" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stopColor="#E8D8B0" />
+        <stop offset="70%" stopColor="#D8C898" />
+        <stop offset="100%" stopColor="#C8B878" />
       </radialGradient>
 
-      {/* Sand territory gradient */}
-      <radialGradient id="sandGrad" cx="50%" cy="50%" r="55%">
-        <stop offset="0%"  stopColor="#DCC888" />
-        <stop offset="100%" stopColor="#C8B068" />
-      </radialGradient>
-
-      {/* Dark vignette for outer edge */}
-      <radialGradient id="vignetteGrad" cx="50%" cy="50%" r="50%">
-        <stop offset="70%" stopColor="transparent" />
-        <stop offset="100%" stopColor="rgba(30,16,8,0.3)" />
-      </radialGradient>
-
-      {/* Stronghold pattern */}
-      <pattern id="strongholdHatch" patternUnits="userSpaceOnUse" width="4" height="4" patternTransform="rotate(45)">
-        <line x1="0" y1="0" x2="0" y2="4" stroke="rgba(100,70,30,0.15)" strokeWidth="1" />
-      </pattern>
-
-      {/* Drop shadow for strongholds */}
-      <filter id="strongholdShadow" x="-10%" y="-10%" width="120%" height="120%">
-        <feDropShadow dx="0" dy="1" stdDeviation="2" floodColor="#1A1008" floodOpacity="0.4" />
+      {/* Parchment noise texture — very subtle grain */}
+      <filter id="parchmentTexture" filterUnits="objectBoundingBox">
+        <feTurbulence type="fractalNoise" baseFrequency="0.4" numOctaves="3" seed="2" result="noise" />
+        <feColorMatrix type="saturate" values="0" in="noise" result="graynoise" />
+        <feComponentTransfer in="graynoise" result="faintNoise">
+          <feFuncA type="linear" slope="0.12" intercept="0" />
+        </feComponentTransfer>
+        <feBlend in="SourceGraphic" in2="faintNoise" mode="multiply" />
       </filter>
 
-      {/* Glow filter for highlights */}
-      <filter id="glowGreen">
-        <feGaussianBlur stdDeviation="3" result="blur" />
-        <feFlood floodColor="#22c55e" floodOpacity="0.6" result="color" />
+      {/* Organic border displacement */}
+      <filter id="organicBorders" filterUnits="userSpaceOnUse" x="0" y="0" width="700" height="730">
+        <feTurbulence type="turbulence" baseFrequency="0.018" numOctaves="4" seed="42" result="noise" />
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+
+      {/* Stronghold hatching pattern */}
+      <pattern id="strongholdHatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+        <line x1="0" y1="0" x2="0" y2="6" stroke="#3A200880" strokeWidth="1" />
+      </pattern>
+
+      {/* Highlight glow filters */}
+      <filter id="glowGreen" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="4" result="blur" />
+        <feFlood floodColor="#22c55e" floodOpacity="0.7" result="color" />
         <feComposite in="color" in2="blur" operator="in" result="glow" />
         <feMerge><feMergeNode in="glow" /><feMergeNode in="SourceGraphic" /></feMerge>
       </filter>
-      <filter id="glowBlue">
+      <filter id="glowBlue" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="4" result="blur" />
+        <feFlood floodColor="#3b82f6" floodOpacity="0.7" result="color" />
+        <feComposite in="color" in2="blur" operator="in" result="glow" />
+        <feMerge><feMergeNode in="glow" /><feMergeNode in="SourceGraphic" /></feMerge>
+      </filter>
+      <filter id="glowTeal" x="-20%" y="-20%" width="140%" height="140%">
         <feGaussianBlur stdDeviation="3" result="blur" />
-        <feFlood floodColor="#3b82f6" floodOpacity="0.6" result="color" />
+        <feFlood floodColor="#0d9488" floodOpacity="0.5" result="color" />
+        <feComposite in="color" in2="blur" operator="in" result="glow" />
+        <feMerge><feMergeNode in="glow" /><feMergeNode in="SourceGraphic" /></feMerge>
+      </filter>
+
+      {/* Spice glow filter */}
+      <filter id="spiceGlow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="2" result="blur" />
+        <feFlood floodColor={C.spiceGlow} floodOpacity="0.6" result="color" />
         <feComposite in="color" in2="blur" operator="in" result="glow" />
         <feMerge><feMergeNode in="glow" /><feMergeNode in="SourceGraphic" /></feMerge>
       </filter>
@@ -765,520 +859,140 @@ function BoardDefs() {
   )
 }
 
-// ─── Outer frame & storm track ──────────────────────────────────────────────────
+// ─── Layer 2: Rock Band Underlays ───────────────────────────────────────────────
 
-function OuterFrame({ stormSector }) {
-  const dots = []
-  const sectorNums = []
-  const stormArrow = []
-
-  for (let i = 0; i < 18; i++) {
-    const a = sectorToRad(i)
-    const dotR = R_OUTER + 13
-
-    // Sector boundary dots
-    dots.push(
-      <circle
-        key={`dot-${i}`}
-        cx={CX + dotR * Math.cos(a)}
-        cy={CY + dotR * Math.sin(a)}
-        r={4}
-        fill={C.frameDark}
-        stroke={C.frameAccent}
-        strokeWidth={1.2}
-      />
-    )
-
-    // Sector numbers (centered in each sector wedge)
-    const numA = sectorToRad(i + 0.5)
-    const numR = R_OUTER + 13
-    const isStorm = i === stormSector
-    sectorNums.push(
-      <text
-        key={`num-${i}`}
-        x={CX + numR * Math.cos(numA)}
-        y={CY + numR * Math.sin(numA)}
-        textAnchor="middle"
-        dominantBaseline="central"
-        fill={isStorm ? C.storm : C.textMid}
-        fontSize={isStorm ? 10 : 8}
-        fontWeight={isStorm ? 'bold' : 'normal'}
-        fontFamily="serif"
-        style={{ userSelect: 'none' }}
-      >
-        {i}
-      </text>
-    )
-  }
-
-  // Storm position marker (arrow)
-  if (stormSector !== undefined) {
-    const sA = sectorToRad(stormSector + 0.5)
-    const arrowR = R_OUTER + 24
-    const ax = CX + arrowR * Math.cos(sA)
-    const ay = CY + arrowR * Math.sin(sA)
-    stormArrow.push(
-      <g key="storm-arrow">
-        <circle cx={ax} cy={ay} r={7} fill={C.storm} opacity={0.25} />
-        <text
-          x={ax} y={ay}
-          textAnchor="middle"
-          dominantBaseline="central"
-          fill={C.storm}
-          fontSize={10}
-          fontWeight="bold"
-          style={{ userSelect: 'none' }}
-        >
-          ☇
-        </text>
-      </g>
-    )
-  }
-
+function RockBandUnderlays() {
   return (
     <g>
-      {/* Dark outer frame ring */}
-      <circle cx={CX} cy={CY} r={R_FRAME} fill="none" stroke={C.frameDark} strokeWidth={20} />
-      <circle cx={CX} cy={CY} r={R_FRAME + 10} fill="none" stroke={C.frameDark} strokeWidth={2} />
-      <circle cx={CX} cy={CY} r={R_FRAME - 10} fill="none" stroke={C.frameAccent} strokeWidth={0.8} />
-
-      {/* Ornamental inner ring */}
-      <circle cx={CX} cy={CY} r={R_OUTER + 2} fill="none" stroke={C.borderThick} strokeWidth={1.5} />
-      <circle cx={CX} cy={CY} r={R_OUTER + 24} fill="none" stroke={C.frameAccent} strokeWidth={0.5} />
-
-      {/* Sector boundary dots */}
-      {dots}
-
-      {/* Sector numbers */}
-      {sectorNums}
-
-      {/* Storm arrow */}
-      {stormArrow}
+      {/* Inner band: R_POLAR to R_INNER */}
+      <circle cx={CX} cy={CY} r={R_INNER} fill={C.rock} />
+      {/* Middle band: R_INNER to R_MIDDLE */}
+      <circle cx={CX} cy={CY} r={R_MIDDLE} fill={C.rock} />
+      {/* Cut out the polar sink area — painted over by polar sink layer */}
     </g>
   )
 }
 
-// ─── Rock band underlays ────────────────────────────────────────────────────────
-//
-// The middle band (R_INNER → R_MIDDLE) is predominantly rock territories.
-// Instead of relying on individual polygon fills to tile seamlessly, we paint
-// a continuous rock-colored annular ring first.  Sand territories then paint
-// their lighter fill on top, leaving the rock color visible wherever two rock
-// polygons meet (eliminating gap artifacts from anti-aliasing / rounding).
-//
-// We also paint the inner band (R_POLAR → R_INNER) since it has several rock
-// territories that border each other (Hole in the Rock, Harg Pass, Arsunt, etc.).
+// ─── Layer 3: Territory Fill (no stroke) ────────────────────────────────────────
 
-function RockBandUnderlays({ territories }) {
-  // Only render if we actually have territory data
-  if (!territories) return null
+function TerritoryFill({ name }) {
+  const path = getTerritoryPath(name)
+  if (!path) return null
+  const type = TERRITORY_TYPES[name]
+  const fill = getTerritoryFill(name)
+  const isStronghold = type === 'stronghold'
+
   return (
     <g>
-      {/* Inner band rock underlay (Polar Sink → Inner boundary) */}
-      {makeArcPath(CX, CY, R_POLAR, R_INNER, 0, 18) && (
-        <path
-          d={makeArcPath(CX, CY, R_POLAR, R_INNER, 0, 18)}
-          fill={C.rock}
-          stroke="none"
-        />
-      )}
-      {/* Middle band rock underlay (Inner → Middle boundary) */}
       <path
-        d={makeArcPath(CX, CY, R_INNER, R_MIDDLE, 0, 18)}
-        fill={C.rock}
-        stroke="none"
+        d={path}
+        fill={fill}
+        stroke={C.border}
+        strokeWidth={isStronghold ? 1.6 : 1.0}
+        strokeLinejoin="round"
+        strokeOpacity={0.6}
       />
-      {/* Outer band — sand base is already there from parchment gradient,
-          but we need a thin rock underlay for territories like South Mesa
-          that sit at the middle/outer boundary edge */}
+      {/* Stronghold hatching overlay */}
+      {isStronghold && (
+        <path d={path} fill="url(#strongholdHatch)" stroke="none" opacity={0.5} />
+      )}
     </g>
   )
 }
 
-// ─── Storm sweep wedge ──────────────────────────────────────────────────────────
+// ─── Layer 4: Storm Sweep ───────────────────────────────────────────────────────
 
 function StormSweep({ stormSector }) {
   const s0 = stormSector - 0.5
   const s1 = stormSector + 0.5
   const path = makeArcPath(CX, CY, R_POLAR, R_OUTER, s0, s1)
   return (
-    <g>
-      <path d={path} fill={C.storm} fillOpacity={0.12} stroke={C.storm} strokeWidth={1.2} strokeOpacity={0.5} />
-    </g>
+    <path d={path} fill={C.storm} fillOpacity={0.15} stroke={C.storm} strokeWidth={1.5} strokeOpacity={0.6} />
   )
 }
 
-// ─── Sector division lines ──────────────────────────────────────────────────────
+// ─── Layer 5: Territory Borders (organic displaced strokes) ─────────────────────
+//
+// Only territory polygon outlines — NO separate sector lines or ring circles.
+// The territory shapes themselves define all visible boundaries on the map.
 
-function SectorLines() {
+function TerritoryBorders() {
+  const borderPaths = []
+  const allNames = Object.keys(TERRITORY_POLYGONS)
+  for (const name of allNames) {
+    const path = getTerritoryPath(name)
+    if (path) {
+      const type = TERRITORY_TYPES[name]
+      const isStronghold = type === 'stronghold'
+      borderPaths.push(
+        <path
+          key={`border-${name}`}
+          d={path}
+          fill="none"
+          stroke={C.border}
+          strokeWidth={isStronghold ? 1.8 : 1.2}
+          strokeLinejoin="round"
+          opacity={0.8}
+        />
+      )
+    }
+  }
+
+  // Outer board edge circle
+  borderPaths.push(
+    <circle
+      key="outer-edge"
+      cx={CX} cy={CY} r={R_OUTER}
+      fill="none" stroke={C.borderThick} strokeWidth={2.0}
+    />
+  )
+
   return (
-    <g>
-      {Array.from({ length: 18 }, (_, i) => {
-        const a = sectorToRad(i)
-        return (
-          <line
-            key={i}
-            x1={CX + R_POLAR * Math.cos(a)}
-            y1={CY + R_POLAR * Math.sin(a)}
-            x2={CX + R_OUTER * Math.cos(a)}
-            y2={CY + R_OUTER * Math.sin(a)}
-            stroke={C.borderThick}
-            strokeWidth={0.8}
-            opacity={0.5}
-          />
-        )
-      })}
+    <g filter="url(#organicBorders)">
+      {borderPaths}
     </g>
   )
 }
 
-// ─── Ring boundary circles ──────────────────────────────────────────────────────
-
-function RingCircles() {
-  return (
-    <g fill="none">
-      <circle cx={CX} cy={CY} r={R_POLAR}  stroke={C.borderFaint} strokeWidth={1.2} />
-      <circle cx={CX} cy={CY} r={R_INNER}  stroke={C.borderThick} strokeWidth={0.8} opacity={0.6} />
-      <circle cx={CX} cy={CY} r={R_MIDDLE} stroke={C.borderThick} strokeWidth={0.8} opacity={0.6} />
-      <circle cx={CX} cy={CY} r={R_OUTER}  stroke={C.borderThick} strokeWidth={1.2} />
-    </g>
-  )
-}
-
-// ─── Polar Sink ─────────────────────────────────────────────────────────────────
+// ─── Layer 6: Polar Sink ────────────────────────────────────────────────────────
 
 function PolarSink({ forces }) {
   return (
     <g>
-      {/* Main polar sink circle */}
-      <circle cx={CX} cy={CY} r={R_POLAR} fill={C.polar} stroke={C.polarStroke} strokeWidth={1.5} />
-
-      {/* Inner detail ring */}
-      <circle cx={CX} cy={CY} r={R_POLAR - 8}
-        fill="none" stroke={C.polarStroke} strokeWidth={0.6} strokeDasharray="4,3" opacity={0.6} />
-
-      {/* "False Wall East" vertical text */}
+      <circle cx={CX} cy={CY} r={R_POLAR} fill={C.polar} />
+      <circle cx={CX} cy={CY} r={R_POLAR - 6} fill="none" stroke={C.polarStroke} strokeWidth={1} strokeDasharray="4 3" opacity={0.6} />
       <text
-        x={CX + 2} y={CY - 16}
-        textAnchor="middle"
-        fill={C.textMid}
-        fontSize={5.5}
-        fontFamily="serif"
-        fontStyle="italic"
-        letterSpacing="1"
-        opacity={0.5}
-        transform={`rotate(90, ${CX + 2}, ${CY - 16})`}
-        style={{ userSelect: 'none' }}
-      >
-        FALSE WALL EAST
-      </text>
-
-      {/* Polar Sink label */}
-      <text
-        x={CX} y={CY - 5}
+        x={CX} y={CY - 6}
         textAnchor="middle" dominantBaseline="central"
         fill={C.textDark} fontSize={9} fontWeight="bold" fontFamily="serif"
-        style={{ userSelect: 'none' }}
+        style={{ pointerEvents: 'none', userSelect: 'none' }}
       >
-        Polar
+        POLAR
       </text>
       <text
-        x={CX} y={CY + 7}
+        x={CX} y={CY + 6}
         textAnchor="middle" dominantBaseline="central"
         fill={C.textDark} fontSize={9} fontWeight="bold" fontFamily="serif"
-        style={{ userSelect: 'none' }}
+        style={{ pointerEvents: 'none', userSelect: 'none' }}
       >
-        Sink
+        SINK
       </text>
-
-      {/* Force tokens */}
-      {forces && forces.length > 0 && forces.map((entry, i) => {
-        const dotX = CX - ((forces.length - 1) * 7) / 2 + i * 7
-        return (
-          <g key={entry.faction}>
-            <circle cx={dotX} cy={CY + 20} r={5}
-              fill={FACTION_FILL[entry.faction] || '#888'} stroke="#00000040" strokeWidth={0.5} opacity={0.92} />
-            <text x={dotX} y={CY + 20}
-              textAnchor="middle" dominantBaseline="central"
-              fill="#000" fontSize={5.5} fontWeight="bold"
-              style={{ userSelect: 'none' }}>
-              {entry.count}
-            </text>
-          </g>
-        )
-      })}
-    </g>
-  )
-}
-
-// ─── Stronghold fortress icon ───────────────────────────────────────────────────
-
-function StrongholdIcon({ cx, cy, scale = 1 }) {
-  const s = scale * 0.8
-  // Simple fortress silhouette
-  return (
-    <g transform={`translate(${cx}, ${cy}) scale(${s})`} opacity={0.6}>
-      {/* Base */}
-      <rect x={-8} y={-2} width={16} height={6} fill={C.textDark} rx={0.5} />
-      {/* Left tower */}
-      <rect x={-7} y={-8} width={4} height={6} fill={C.textDark} rx={0.3} />
-      <rect x={-8} y={-10} width={6} height={3} fill={C.textDark} rx={0.3} />
-      {/* Right tower */}
-      <rect x={3} y={-8} width={4} height={6} fill={C.textDark} rx={0.3} />
-      <rect x={2} y={-10} width={6} height={3} fill={C.textDark} rx={0.3} />
-      {/* Center spire */}
-      <rect x={-2} y={-6} width={4} height={4} fill={C.textDark} rx={0.3} />
-      <polygon points="0,-11 -3,-6 3,-6" fill={C.textDark} />
-      {/* Gate */}
-      <rect x={-1.5} y={0} width={3} height={4} fill={C.polar} rx={1} />
-    </g>
-  )
-}
-
-// ─── Spice blow indicator ───────────────────────────────────────────────────────
-
-function SpiceBlowMarker({ cx, cy, amount }) {
-  if (!amount) return null
-  return (
-    <g>
-      <circle cx={cx} cy={cy} r={8} fill="rgba(200,80,0,0.15)" stroke={C.spice} strokeWidth={0.6} />
-      <text x={cx} y={cy + 0.5}
-        textAnchor="middle" dominantBaseline="central"
-        fill={C.spice} fontSize={7} fontWeight="bold" fontFamily="serif"
-        style={{ userSelect: 'none' }}>
-        {amount}
-      </text>
-    </g>
-  )
-}
-
-// ─── Territory renderer ─────────────────────────────────────────────────────────
-
-function getTerritoryStyling(territory) {
-  const type = territory.territory_type
-  if (type === 'stronghold') {
-    return { fill: C.stronghold, stroke: C.borderThick, strokeW: 2 }
-  } else if (type === 'rock') {
-    return { fill: C.rock, stroke: C.borderThick, strokeW: 1 }
-  } else if (type === 'sand') {
-    return { fill: C.sand, stroke: C.borderThin, strokeW: 1 }
-  }
-  return { fill: C.sand, stroke: C.borderThin, strokeW: 1 }
-}
-
-function TerritoryShape({ name, territory, forceEntries, isStorm, highlight, mode }) {
-  const poly = TERRITORY_POLYGONS[name]
-  const arc = TERRITORY_ARCS[name]
-  if (!poly && !arc) return null
-
-  // Compute path and centroid
-  let path, cx, cy
-
-  if (poly) {
-    path = makePolyPath(poly.vertices, poly.arcEdges)
-    if (poly.centroid) {
-      const pt = polyPt(poly.centroid[0], poly.centroid[1])
-      cx = pt.x; cy = pt.y
-    } else {
-      const c = polyCentroid(poly.vertices)
-      cx = c.x; cy = c.y
-    }
-  } else {
-    const { s0, s1, ri, ro } = arc
-    path = makeArcPath(CX, CY, ri, ro, s0, s1)
-    const c = arcCentroid(CX, CY, ri, ro, s0, s1)
-    cx = c.x; cy = c.y
-  }
-
-  const { fill, stroke, strokeW } = getTerritoryStyling(territory)
-  const isStronghold = territory.territory_type === 'stronghold'
-  const isSand = territory.territory_type === 'sand'
-  const hasSpice = territory.current_spice > 0
-  const hasForces = forceEntries && forceEntries.length > 0
-
-  // Storm highlight
-  let stormStroke = stroke
-  let stormStrokeW = strokeW
-  if (isStorm && isSand && !territory.storm_exception) {
-    stormStroke = C.storm
-    stormStrokeW = 2
-  }
-
-  // Movement highlight
-  const glowColor =
-    highlight === 'from'     ? '#22c55e' :
-    highlight === 'to'       ? '#3b82f6' :
-    highlight === 'adjacent' ? '#0d9488' :
-    null
-  const glowFilter =
-    highlight === 'from' ? 'url(#glowGreen)' :
-    highlight === 'to'   ? 'url(#glowBlue)' :
-    null
-
-  const isRock = territory.territory_type === 'rock'
-
-  // ── FILL PASS ──
-  if (mode === 'fill') {
-    // Rock territories: the continuous RockBandUnderlays provides the fill.
-    // We only draw a thin internal dividing line so the rock band looks like
-    // one seamless shape with subtle territory boundaries.
-    if (isRock) {
-      return (
+      {/* Force tokens in the Polar Sink */}
+      {forces && forces.length > 0 && (
         <g>
-          {glowColor && (
-            <path
-              d={path}
-              fill="none"
-              stroke={glowColor}
-              strokeWidth={highlight === 'adjacent' ? 3 : 5}
-              opacity={highlight === 'adjacent' ? 0.4 : 0.8}
-              filter={glowFilter}
-            />
-          )}
-          <path
-            d={path}
-            fill="none"
-            stroke={glowColor ?? C.borderFaint}
-            strokeWidth={0.5}
-            strokeLinejoin="round"
-            opacity={0.5}
-          />
-        </g>
-      )
-    }
-
-    return (
-      <g>
-        {/* Glow outline for highlights */}
-        {glowColor && (
-          <path
-            d={path}
-            fill="none"
-            stroke={glowColor}
-            strokeWidth={highlight === 'adjacent' ? 3 : 5}
-            opacity={highlight === 'adjacent' ? 0.4 : 0.8}
-            filter={glowFilter}
-          />
-        )}
-
-        {/* Territory fill */}
-        <path
-          d={path}
-          fill={fill}
-          stroke={glowColor ?? stormStroke}
-          strokeWidth={stormStrokeW}
-          strokeLinejoin="round"
-        />
-
-        {/* Stronghold inner border decoration */}
-        {isStronghold && poly && (
-          <path
-            d={path}
-            fill="url(#strongholdHatch)"
-            stroke={C.textDark}
-            strokeWidth={0.5}
-            strokeDasharray="3,3"
-            opacity={0.4}
-          />
-        )}
-      </g>
-    )
-  }
-
-  // ── LABEL PASS ──
-  const labelText = LABEL_ABBREV[name] ?? name
-  const lines = labelText.split('\n')
-
-  // Calculate font size based on available space
-  let availW
-  if (poly) {
-    const pts = poly.vertices.map(([d, r]) => polyPt(d, r))
-    const bboxW = Math.max(...pts.map(p => p.x)) - Math.min(...pts.map(p => p.x))
-    const bboxH = Math.max(...pts.map(p => p.y)) - Math.min(...pts.map(p => p.y))
-    availW = Math.min(bboxW, bboxH) * 0.75
-  } else {
-    const { s0, s1, ri, ro } = arc
-    const arcSpanDeg = (s1 - s0) * 20
-    const arcMidR = (ri + ro) / 2
-    const arcWidthPx = arcMidR * (arcSpanDeg * Math.PI / 180)
-    availW = Math.min(arcWidthPx * 0.88, (ro - ri) * 0.88)
-  }
-
-  const longestLine = Math.max(...lines.map(l => l.length))
-  const fontSize = isStronghold
-    ? Math.max(5.5, Math.min(8.5, availW / longestLine * 1.6))
-    : Math.max(5, Math.min(7.5, availW / longestLine * 1.6))
-
-  const lineH = fontSize + 1.5
-  const totalLabelH = lines.length * lineH
-  const spiceH = hasSpice ? 10 : 0
-  const forceH = hasForces ? 10 : 0
-  const iconH = isStronghold ? 14 : 0
-  const totalH = iconH + totalLabelH + spiceH + forceH
-  const topY = cy - totalH / 2
-
-  // Spice blow amount (static indicator from game data)
-  return (
-    <g>
-      {/* Stronghold fortress icon */}
-      {isStronghold && (
-        <StrongholdIcon cx={cx} cy={topY + 6} scale={0.7} />
-      )}
-
-      {/* Territory name */}
-      {lines.map((line, i) => (
-        <text
-          key={i}
-          x={cx}
-          y={topY + iconH + (i + 0.6) * lineH}
-          textAnchor="middle"
-          dominantBaseline="central"
-          fill={isStronghold ? C.textGold : isSand ? C.textDark : C.textDark}
-          fontSize={fontSize}
-          fontWeight={isStronghold ? 'bold' : 'normal'}
-          fontFamily="serif"
-          style={{ pointerEvents: 'none', userSelect: 'none' }}
-        >
-          {line}
-        </text>
-      ))}
-
-      {/* Current spice on territory */}
-      {hasSpice && (
-        <g>
-          <circle
-            cx={cx} cy={topY + iconH + totalLabelH + spiceH * 0.5}
-            r={6} fill="rgba(200,80,0,0.2)" stroke={C.spice} strokeWidth={0.6}
-          />
-          <text
-            x={cx}
-            y={topY + iconH + totalLabelH + spiceH * 0.55}
-            textAnchor="middle" dominantBaseline="central"
-            fill={C.spice} fontSize={7.5} fontWeight="bold" fontFamily="serif"
-            style={{ pointerEvents: 'none', userSelect: 'none' }}
-          >
-            {territory.current_spice}
-          </text>
-        </g>
-      )}
-
-      {/* Force tokens */}
-      {hasForces && (
-        <g>
-          {forceEntries.map((entry, i) => {
-            const totalDots = forceEntries.length
-            const dotX = cx - ((totalDots - 1) * 8) / 2 + i * 8
-            const dotY = topY + iconH + totalLabelH + spiceH + forceH * 0.5
+          {forces.map((entry, i) => {
+            const dotX = CX - ((forces.length - 1) * 9) / 2 + i * 9
+            const dotY = CY + 24
             return (
               <g key={entry.faction}>
-                <circle cx={dotX} cy={dotY} r={5}
+                <circle cx={dotX} cy={dotY} r={6}
                   fill={FACTION_FILL[entry.faction] || '#888'}
-                  stroke="#00000030" strokeWidth={0.5}
-                  opacity={0.92} />
+                  stroke="#00000050" strokeWidth={0.8}
+                  opacity={0.95} />
                 <text
-                  x={dotX} y={dotY}
+                  x={dotX} y={dotY + 0.5}
                   textAnchor="middle" dominantBaseline="central"
-                  fill="#000" fontSize={5.5} fontWeight="bold"
+                  fill="#000" fontSize={6.5} fontWeight="bold"
                   style={{ pointerEvents: 'none', userSelect: 'none' }}
                 >
                   {entry.count}
@@ -1288,90 +1002,244 @@ function TerritoryShape({ name, territory, forceEntries, isStorm, highlight, mod
           })}
         </g>
       )}
-
-      {/* Spice blow amount indicator */}
-      {territory.has_spice_blow && territory.spice_blow_amount > 0 && !hasSpice && (
-        <SpiceBlowMarker
-          cx={cx + (availW > 40 ? 18 : 12)}
-          cy={topY + iconH + lineH * 0.5}
-          amount={territory.spice_blow_amount}
-        />
-      )}
     </g>
   )
 }
 
-// ─── Corner decorations ─────────────────────────────────────────────────────────
+// ─── Layer 7: Territory Labels ──────────────────────────────────────────────────
 
-function DuneTitle() {
+function TerritoryLabel({ name }) {
+  if (name === 'Polar Sink') return null
+  const { x: cx, y: cy } = getTerritoryCentroid(name)
+  const type = TERRITORY_TYPES[name]
+  const isStronghold = type === 'stronghold'
+  const lines = LABEL_ABBREV[name] || [name]
+  const fontSize = isStronghold ? 7 : 5.5
+  const fill = isStronghold ? C.textGold : C.textDark
+  const fontWeight = isStronghold ? 'bold' : 'normal'
+
+  const startY = cy - ((lines.length - 1) * (fontSize + 1)) / 2
+
+  return (
+    <g style={{ pointerEvents: 'none', userSelect: 'none' }}>
+      {/* Stronghold fortress icon */}
+      {isStronghold && (
+        <g transform={`translate(${cx}, ${startY - fontSize - 4})`}>
+          <polygon
+            points="-5,2 -5,-2 -3,-2 -3,-4 -1,-4 -1,-2 1,-2 1,-4 3,-4 3,-2 5,-2 5,2"
+            fill={C.textGold}
+            opacity={0.8}
+          />
+        </g>
+      )}
+      {lines.map((line, i) => (
+        <text
+          key={i}
+          x={cx} y={startY + i * (fontSize + 1)}
+          textAnchor="middle" dominantBaseline="central"
+          fill={fill} fontSize={fontSize} fontWeight={fontWeight}
+          fontFamily="serif"
+          opacity={0.85}
+        >
+          {line}
+        </text>
+      ))}
+    </g>
+  )
+}
+
+// ─── Layer 8: Spice Indicator ───────────────────────────────────────────────────
+
+function SpiceIndicator({ name, territory }) {
+  if (!territory.current_spice || territory.current_spice <= 0) return null
+  const { x: cx, y: cy } = getTerritoryCentroid(name)
+
   return (
     <g>
+      <circle cx={cx + 16} cy={cy - 6} r={7}
+        fill="rgba(200,80,0,0.25)" stroke={C.spice} strokeWidth={0.8} />
       <text
-        x={CX + BR - 30} y={CY - BR + 38}
-        textAnchor="end"
-        fill={C.frameAccent}
-        fontSize={22}
-        fontWeight="bold"
-        fontFamily="serif"
-        letterSpacing="4"
+        x={cx + 16} y={cy - 5.5}
+        textAnchor="middle" dominantBaseline="central"
+        fill={C.spice} fontSize={7} fontWeight="bold" fontFamily="serif"
+        style={{ pointerEvents: 'none', userSelect: 'none' }}
+      >
+        {territory.current_spice}
+      </text>
+    </g>
+  )
+}
+
+// ─── Layer 8: Force Tokens ──────────────────────────────────────────────────────
+
+function ForceTokens({ name, forceEntries }) {
+  if (!forceEntries || forceEntries.length === 0) return null
+  const { x: cx, y: cy } = getTerritoryCentroid(name)
+
+  return (
+    <g>
+      {forceEntries.map((entry, i) => {
+        const totalDots = forceEntries.length
+        const dotX = cx - ((totalDots - 1) * 9) / 2 + i * 9
+        const dotY = cy + 8
+        return (
+          <g key={entry.faction}>
+            <circle cx={dotX} cy={dotY} r={6}
+              fill={FACTION_FILL[entry.faction] || '#888'}
+              stroke="#00000050" strokeWidth={0.8}
+              opacity={0.95} />
+            <text
+              x={dotX} y={dotY + 0.5}
+              textAnchor="middle" dominantBaseline="central"
+              fill="#000" fontSize={6.5} fontWeight="bold"
+              style={{ pointerEvents: 'none', userSelect: 'none' }}
+            >
+              {entry.count}
+            </text>
+          </g>
+        )
+      })}
+    </g>
+  )
+}
+
+// ─── Layer 8: Territory Highlight ───────────────────────────────────────────────
+
+function TerritoryHighlight({ name, highlight }) {
+  if (!highlight) return null
+  const path = getTerritoryPath(name)
+  if (!path) return null
+
+  const glowColor =
+    highlight === 'from'     ? '#22c55e' :
+    highlight === 'to'       ? '#3b82f6' :
+    highlight === 'adjacent' ? '#0d9488' :
+    null
+  const glowFilter =
+    highlight === 'from'     ? 'url(#glowGreen)' :
+    highlight === 'to'       ? 'url(#glowBlue)' :
+    highlight === 'adjacent' ? 'url(#glowTeal)' :
+    null
+  const fillOpacity =
+    highlight === 'from'     ? 0.25 :
+    highlight === 'to'       ? 0.25 :
+    highlight === 'adjacent' ? 0.15 :
+    0
+
+  if (!glowColor) return null
+
+  return (
+    <path
+      d={path}
+      fill={glowColor}
+      fillOpacity={fillOpacity}
+      stroke={glowColor}
+      strokeWidth={highlight === 'adjacent' ? 2 : 3}
+      strokeOpacity={highlight === 'adjacent' ? 0.5 : 0.8}
+      filter={glowFilter}
+    />
+  )
+}
+
+// ─── Layer 9: Outer Frame ───────────────────────────────────────────────────────
+
+function OuterFrame({ stormSector }) {
+  const sectorDots = []
+  const sectorNumbers = []
+  for (let s = 0; s < 18; s++) {
+    const a = sectorToRad(s)
+    // Dots at the outer frame boundary
+    const dx = CX + R_FRAME * Math.cos(a)
+    const dy = CY + R_FRAME * Math.sin(a)
+    sectorDots.push(
+      <circle key={`dot-${s}`} cx={dx.toFixed(2)} cy={dy.toFixed(2)} r={2.5}
+        fill={C.frameAccent} />
+    )
+    // Sector numbers outside the frame
+    const numR = R_FRAME + 14
+    const nx = CX + numR * Math.cos(a)
+    const ny = CY + numR * Math.sin(a)
+    sectorNumbers.push(
+      <text key={`num-${s}`}
+        x={nx.toFixed(2)} y={ny.toFixed(2)}
+        textAnchor="middle" dominantBaseline="central"
+        fill={C.textLight} fontSize={8} fontFamily="serif"
         opacity={0.7}
-        style={{ userSelect: 'none' }}
+        style={{ pointerEvents: 'none', userSelect: 'none' }}
+      >
+        {s}
+      </text>
+    )
+  }
+
+  // Storm position marker
+  const stormA = sectorToRad(stormSector)
+  const stormX = CX + (R_FRAME + 14) * Math.cos(stormA)
+  const stormY = CY + (R_FRAME + 14) * Math.sin(stormA)
+
+  return (
+    <g>
+      {/* Dark frame ring */}
+      <circle cx={CX} cy={CY} r={R_FRAME} fill="none"
+        stroke={C.frameMid} strokeWidth={4} />
+      <circle cx={CX} cy={CY} r={R_FRAME + 2} fill="none"
+        stroke={C.border} strokeWidth={1} opacity={0.5} />
+
+      {sectorDots}
+      {sectorNumbers}
+
+      {/* Storm marker */}
+      <g>
+        <circle cx={stormX.toFixed(2)} cy={stormY.toFixed(2)} r={10}
+          fill={C.storm} fillOpacity={0.3}
+          stroke={C.storm} strokeWidth={1.5} />
+        <text
+          x={stormX.toFixed(2)} y={(stormY + 0.5).toFixed(2)}
+          textAnchor="middle" dominantBaseline="central"
+          fill={C.storm} fontSize={7} fontWeight="bold" fontFamily="serif"
+          style={{ pointerEvents: 'none', userSelect: 'none' }}
+        >
+          S
+        </text>
+      </g>
+    </g>
+  )
+}
+
+// ─── Title and info labels ──────────────────────────────────────────────────────
+
+function BoardLabels() {
+  return (
+    <g style={{ pointerEvents: 'none', userSelect: 'none' }}>
+      {/* DUNE title at top */}
+      <text
+        x={CX} y={24}
+        textAnchor="middle" dominantBaseline="central"
+        fill={C.textGold} fontSize={22} fontWeight="bold" fontFamily="serif"
+        letterSpacing="6"
+        opacity={0.9}
       >
         DUNE
       </text>
-    </g>
-  )
-}
 
-function BottomLabels() {
-  return (
-    <g>
+      {/* BENE TLEILAXU TANKS label — bottom left */}
       <text
-        x={CX - BR + 50} y={CY + BR + 24}
-        textAnchor="start"
-        fill={C.frameAccent}
-        fontSize={8}
-        fontFamily="serif"
-        letterSpacing="2"
-        opacity={0.6}
-        style={{ userSelect: 'none' }}
+        x={90} y={VB_H - 18}
+        textAnchor="middle" dominantBaseline="central"
+        fill={C.textMid} fontSize={7} fontFamily="serif"
+        opacity={0.7}
       >
         BENE TLEILAXU TANKS
       </text>
+
+      {/* SPICE BANK label — bottom right */}
       <text
-        x={CX + BR - 50} y={CY + BR + 24}
-        textAnchor="end"
-        fill={C.frameAccent}
-        fontSize={8}
-        fontFamily="serif"
-        letterSpacing="2"
-        opacity={0.6}
-        style={{ userSelect: 'none' }}
+        x={VB_W - 90} y={VB_H - 18}
+        textAnchor="middle" dominantBaseline="central"
+        fill={C.textMid} fontSize={7} fontFamily="serif"
+        opacity={0.7}
       >
         SPICE BANK
-      </text>
-    </g>
-  )
-}
-
-// ─── Storm start indicator ──────────────────────────────────────────────────────
-
-function StormStart() {
-  const a = sectorToRad(9)  // bottom of board
-  const r = R_OUTER + 14
-  return (
-    <g>
-      <text
-        x={CX + r * Math.cos(a) + 20} y={CY + r * Math.sin(a) + 2}
-        textAnchor="middle"
-        fill={C.textMid}
-        fontSize={5}
-        fontFamily="serif"
-        letterSpacing="1"
-        opacity={0.6}
-        style={{ userSelect: 'none' }}
-      >
-        STORM START ▸▸▸
       </text>
     </g>
   )
@@ -1400,127 +1268,105 @@ export default function GameBoard({
     return null
   }
 
-  function getBand(name) {
-    const poly = TERRITORY_POLYGONS[name]
-    if (poly) return poly.band
-    const arc = TERRITORY_ARCS[name]
-    if (!arc) return null
-    if (arc.ri >= R_MIDDLE) return 'outer'
-    if (arc.ri >= R_INNER) return 'middle'
-    return 'inner'
+  // Collect territory names by band order for correct layering
+  const outerNames = []
+  const middleNames = []
+  const innerNames = []
+  const insetNames = []
+
+  for (const [name, poly] of Object.entries(TERRITORY_POLYGONS)) {
+    if (poly.band === 'outer') outerNames.push(name)
+    else if (poly.band === 'middle') middleNames.push(name)
+    else if (poly.band === 'inner') innerNames.push(name)
+    else if (poly.band === 'inset') insetNames.push(name)
   }
+
+  const allTerritoryNames = [...outerNames, ...middleNames, ...innerNames, ...insetNames]
 
   return (
     <div className="bg-[#0f0e0b] border border-[#3a3020] rounded p-2 h-full flex flex-col">
       <svg
-        viewBox="0 0 700 700"
+        viewBox={`0 0 ${VB_W} ${VB_H}`}
         className="flex-1 w-full min-h-0"
         preserveAspectRatio="xMidYMid meet"
       >
         <BoardDefs />
 
-        {/* Background */}
-        <rect width="700" height="700" fill={C.frameDark} rx="8" />
+        {/* LAYER 1: Base */}
+        <rect width={VB_W} height={VB_H} fill={C.frameDark} />
+        {/* Dark frame circle */}
+        <circle cx={CX} cy={CY} r={R_FRAME} fill={C.frameMid} />
+        {/* Parchment gradient circle with noise texture */}
+        <circle cx={CX} cy={CY} r={R_OUTER} fill="url(#parchmentGrad)" filter="url(#parchmentTexture)" />
 
-        {/* Board background disc — dark frame ring */}
-        <circle cx={CX} cy={CY} r={R_FRAME} fill={C.frameDark} />
+        {/* LAYER 2: Rock Band Underlays */}
+        <RockBandUnderlays />
 
-        {/* Parchment base layer — warm sand gradient */}
-        <circle cx={CX} cy={CY} r={R_OUTER} fill="url(#parchmentGrad)" />
+        {/* LAYER 3: Territory Fills — outer first, then middle, inner, inset */}
+        {/* Sand territories paint ON TOP of rock underlays */}
+        {allTerritoryNames.map(name => (
+          <TerritoryFill key={`fill-${name}`} name={name} />
+        ))}
 
-        {/* Subtle vignette overlay */}
-        <circle cx={CX} cy={CY} r={R_OUTER} fill="url(#vignetteGrad)" />
-
-        {/* Storm sector fill */}
+        {/* LAYER 4: Storm Sweep */}
         <StormSweep stormSector={stormSectorNum} />
 
-        {/* Rock band underlays — continuous rings so no gaps show between
-            adjacent rock territory polygons. Individual territory fills paint
-            on top; sand territories cover sections of these rings with sand color. */}
-        <RockBandUnderlays territories={territories} />
+        {/* LAYER 5: Organic Borders */}
+        <TerritoryBorders />
 
-        {/* PASS 1: Territory fills — outer → middle → inner → inset strongholds */}
-        {['outer', 'middle', 'inner', 'inset'].map(band =>
-          Object.entries(territories).map(([name, territory]) => {
-            if (getBand(name) !== band) return null
-            const forces = forceMap[name] || []
-            const isStorm = (territory.sectors || []).includes(stormSectorNum)
-            const highlight = getHighlight(name)
-            return (
-              <TerritoryShape
-                key={`fill-${name}`}
-                name={name}
-                territory={territory}
-                forceEntries={forces}
-                isStorm={isStorm}
-                highlight={highlight}
-                mode="fill"
-              />
-            )
-          })
-        )}
-
-        {/* Ring boundary circles */}
-        <RingCircles />
-
-        {/* Sector dividing lines */}
-        <SectorLines />
-
-        {/* Polar Sink */}
+        {/* LAYER 6: Polar Sink */}
         <PolarSink forces={forceMap['Polar Sink']} />
 
-        {/* PASS 2: Territory labels — on top of all fills */}
-        {['outer', 'middle', 'inner', 'inset'].map(band =>
-          Object.entries(territories).map(([name, territory]) => {
-            if (name === 'Polar Sink') return null
-            if (getBand(name) !== band) return null
-            const forces = forceMap[name] || []
-            const isStorm = (territory.sectors || []).includes(stormSectorNum)
-            const highlight = getHighlight(name)
-            return (
-              <TerritoryShape
-                key={`label-${name}`}
-                name={name}
-                territory={territory}
-                forceEntries={forces}
-                isStorm={isStorm}
-                highlight={highlight}
-                mode="label"
-              />
-            )
-          })
-        )}
+        {/* LAYER 7: Territory Labels */}
+        {allTerritoryNames.map(name => (
+          <TerritoryLabel key={`label-${name}`} name={name} />
+        ))}
 
-        {/* Outer frame & storm track */}
+        {/* LAYER 8: Dynamic Game Overlays */}
+        {/* Spice indicators */}
+        {Object.entries(territories).map(([name, territory]) => (
+          <SpiceIndicator key={`spice-${name}`} name={name} territory={territory} />
+        ))}
+
+        {/* Force tokens */}
+        {Object.entries(territories).map(([name]) => (
+          <ForceTokens
+            key={`forces-${name}`}
+            name={name}
+            forceEntries={forceMap[name]}
+          />
+        ))}
+
+        {/* Movement highlights */}
+        {Object.entries(territories).map(([name]) => {
+          if (name === 'Polar Sink') return null
+          const highlight = getHighlight(name)
+          if (!highlight) return null
+          return (
+            <TerritoryHighlight
+              key={`highlight-${name}`}
+              name={name}
+              highlight={highlight}
+            />
+          )
+        })}
+
+        {/* LAYER 9: Outer Frame */}
         <OuterFrame stormSector={stormSectorNum} />
 
-        {/* Corner decorations */}
-        <DuneTitle />
-        <BottomLabels />
-        <StormStart />
+        {/* Board labels */}
+        <BoardLabels />
       </svg>
 
-      {/* Legend */}
+      {/* Legend bar */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-2 py-1 border-t border-[#3a3020] text-[10px] text-[#8B7040] shrink-0">
-        <span className="flex items-center gap-1">
-          <span className="inline-block w-2.5 h-2.5 rounded-sm border-2" style={{ borderColor: C.borderThick, background: C.stronghold }} />
-          Stronghold
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="inline-block w-2.5 h-2.5 rounded-sm border" style={{ borderColor: C.borderThick, background: C.rock }} />
-          Rock
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="inline-block w-2.5 h-2.5 rounded-sm border" style={{ borderColor: C.borderThin, background: C.sand }} />
-          Sand
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="font-bold text-xs" style={{ color: C.spice }}>⬥</span>
-          Spice
-        </span>
         <span className="flex items-center gap-1">
           <span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: C.stormFill, border: `1px solid ${C.storm}` }} />
           Storm
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="font-bold text-xs" style={{ color: C.spice }}>&#x2B25;</span>
+          Spice
         </span>
         <span style={{ color: '#3a3020' }}>|</span>
         {Object.entries(FACTION_FILL).map(([faction, color]) => (

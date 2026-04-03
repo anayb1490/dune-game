@@ -107,7 +107,15 @@
       "Bash(curl -s http://localhost:8000/api/games/$GAME?player_id=p_bot2)",
       "Bash(curl -s -X POST http://localhost:8000/api/games/$GAME/action -H 'Content-Type: application/json' -d '{\"\"\"\"player_id\"\"\"\":\"\"\"\"p_bot2\"\"\"\",\"\"\"\"action_type\"\"\"\":\"\"\"\"select_traitor\"\"\"\",\"\"\"\"leader_name\"\"\"\":\"\"\"\"Thufir Hawat\"\"\"\"}')",
       "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d.get\\(''''current_phase'''',''''?''''\\)\\)\")",
-      "Bash(curl -s -X POST \"http://localhost:8000/api/games/$GAME/action\" -H \"Content-Type: application/json\" -d '{\"\"player_id\"\":\"\"p_bot2\"\",\"\"action_type\"\":\"\"select_traitor\"\",\"\"traitor_card_id\"\":\"\"traitor_atreides_thufir_hawat\"\"}')"
+      "Bash(curl -s -X POST \"http://localhost:8000/api/games/$GAME/action\" -H \"Content-Type: application/json\" -d '{\"\"player_id\"\":\"\"p_bot2\"\",\"\"action_type\"\":\"\"select_traitor\"\",\"\"traitor_card_id\"\":\"\"traitor_atreides_thufir_hawat\"\"}')",
+      "Bash(git stash:*)",
+      "Bash(python -B -m pytest backend/tests/test_spice.py::TestShaiHulud::test_worm_destroys_spice_on_last_territory -x --tb=short)",
+      "Bash(python -B -m pytest backend/tests/ --tb=short -k \"not test_worm_destroys_spice_on_last_territory\")",
+      "Bash(findstr /C:\"Red Chasm\")",
+      "Bash(python -B -m pytest backend/tests/test_spice.py::TestSpiceBank::test_spice_deducted_from_bank backend/tests/test_spice.py::TestSpiceBank::test_shai_hulud_returns_spice_to_bank --tb=short)",
+      "Bash(python -B -m pytest backend/tests/test_api.py::TestPerformAction::test_advance_through_all_interactive_phases --tb=short)",
+      "Bash(python -B -m pytest backend/tests/ --tb=short -k \"not \\(test_worm_destroys_spice_on_last_territory or test_spice_deducted_from_bank or test_shai_hulud_returns_spice_to_bank or test_storm_blocks_spice_placement\\)\")",
+      "Bash(python -B -m pytest backend/tests/ --tb=line)"
     ]
   }
 }

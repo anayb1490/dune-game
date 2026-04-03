@@ -51,9 +51,9 @@ class TestStormDamage:
     """Verify forces are destroyed in swept sand sectors."""
 
     def test_forces_killed_in_swept_sand(self, game_with_forces_in_sand: GameState):
-        """Forces at sector 13 (The Great Flat, sand) should be destroyed
-        when the storm sweeps through sector 13."""
-        # Storm at 15, move 3: sweeps 14, 13, 12. Sector 13 is hit.
+        """Forces at sector 15 (The Great Flat, sand) should be destroyed
+        when the storm sweeps through sector 15."""
+        # Storm at 17, move 3: sweeps 16, 15, 14. Sector 15 is hit.
         result = resolve_storm(game_with_forces_in_sand, storm_move=3)
         atreides = next(p for p in result.players if p.faction == FactionName.ATREIDES)
 
@@ -92,7 +92,7 @@ class TestStormDamage:
         new_forces = list(fremen.forces_on_board) + [
             ForceGroup(
                 territory_name="The Great Flat",
-                sector=13,
+                sector=15,
                 regular_count=3,
             ),
         ]
@@ -103,7 +103,7 @@ class TestStormDamage:
         ]
         game = game_with_forces_in_sand.model_copy(update={"players": players})
 
-        result = resolve_storm(game, storm_move=3)  # Sweeps 14, 13, 12
+        result = resolve_storm(game, storm_move=3)  # Sweeps 16, 15, 14
         fremen_after = next(p for p in result.players if p.faction == FactionName.FREMEN)
 
         great_flat_groups = [
@@ -120,7 +120,7 @@ class TestStormDamage:
         new_forces = list(atreides.forces_on_board) + [
             ForceGroup(
                 territory_name="Imperial Basin",
-                sector=5,
+                sector=1,
                 regular_count=3,
             ),
         ]
@@ -131,19 +131,19 @@ class TestStormDamage:
         players = [updated if p.faction == FactionName.ATREIDES else p for p in six_player_basic.players]
         game = six_player_basic.model_copy(update={
             "players": players,
-            "storm_sector": 7,
+            "storm_sector": 3,
         })
 
-        result = resolve_storm(game, storm_move=3)  # Sweeps 6, 5, 4
+        result = resolve_storm(game, storm_move=3)  # Sweeps 2, 1, 0
         atreides_after = next(p for p in result.players if p.faction == FactionName.ATREIDES)
         ib_groups = [fg for fg in atreides_after.forces_on_board if fg.territory_name == "Imperial Basin"]
         assert len(ib_groups) == 1
         assert ib_groups[0].regular_count == 3
 
     def test_forces_not_in_swept_sector_survive(self, game_with_forces_in_sand: GameState):
-        """Forces in sector 13 are safe if storm only sweeps sectors 14, 15, 16."""
-        # Storm at 17, move 3: sweeps 16, 15, 14 — sector 13 NOT hit
-        game = game_with_forces_in_sand.model_copy(update={"storm_sector": 17})
+        """Forces in sector 15 are safe if storm only sweeps sectors 12, 11, 10."""
+        # Storm at 13, move 3: sweeps 12, 11, 10 — sector 15 NOT hit
+        game = game_with_forces_in_sand.model_copy(update={"storm_sector": 13})
         result = resolve_storm(game, storm_move=3)
         atreides = next(p for p in result.players if p.faction == FactionName.ATREIDES)
         great_flat = [fg for fg in atreides.forces_on_board if fg.territory_name == "The Great Flat"]

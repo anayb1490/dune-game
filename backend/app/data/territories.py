@@ -4,25 +4,25 @@ Static territory data for the classic Dune board game (Avalon Hill / GF9 edition
 Sector numbering: 0–17, clockwise from top (12 o'clock = sector 0).
 Each sector = 20°. Sectors verified against the GF9 board image.
 
-Board layout (clockwise from top):
-  Sec  0  — Tsimpo / top
-  Sec  1  — Arrakeen area
-  Sec  2  — Rim Wall West / Arrakeen
-  Sec  3  — Sihaya Ridge / Gara Kulon
-  Sec  4  — Shield Wall / Hole in the Rock
-  Sec  5  — False Wall East / Red Chasm
-  Sec  6  — Harg Pass / Tuek's Sietch
-  Sec  7  — False Wall South / South Mesa
-  Sec  8  — Cielago East / Cielago North
-  Sec  9  — Cielago West
-  Sec 10  — False Wall West / Cielago South
-  Sec 11  — Habbanya Sietch / Meridian
-  Sec 12  — Arsunt / Habbanya Erg
-  Sec 13  — Sietch Tabr / The Greater Flat
-  Sec 14  — Wind Pass / The Great Flat
-  Sec 15  — Wind Pass North / Plastic Basin
-  Sec 16  — Carthag / Funeral Plain
-  Sec 17  — Broken Land / Old Gap (wraps back to 0)
+Board layout (clockwise from top, matching frontend polygon positions):
+  Sec  0  — Imperial Basin (top) / Broken Land / Old Gap
+  Sec  1  — Arrakeen / Rim Wall West / Broken Land / Basin / Old Gap
+  Sec  2  — Imperial Basin / Basin
+  Sec  3  — Sihaya Ridge / Hole in the Rock / Gara Kulon
+  Sec  4  — Shield Wall / Hole in the Rock / Harg Pass / Gara Kulon / Red Chasm
+  Sec  5  — Pasty Mesa / Harg Pass / Red Chasm
+  Sec  6  — False Wall East / Harg Pass / Tuek's Sietch / The Minor Erg
+  Sec  7  — South Mesa / Tuek's Sietch / The Minor Erg
+  Sec  8  — False Wall South / Cielago East / Cielago Depression
+  Sec  9  — Cielago North / Cielago East / Cielago West / Cielago Depression / Cielago South
+  Sec 10  — Cielago North / Cielago West / Habbanya Sietch / Cielago South
+  Sec 11  — False Wall West / Habbanya Sietch / Meridian
+  Sec 12  — Arsunt / Hagga Basin / Meridian / Habbanya Ridge Flat
+  Sec 13  — Arsunt / Sietch Tabr / Hagga Basin / Habbanya Ridge Flat / Habbanya Erg
+  Sec 14  — Sietch Tabr / Bight of the Cliff / Habbanya Erg / The Greater Flat
+  Sec 15  — Wind Pass / Bight of the Cliff / Plastic Basin / The Greater Flat / The Great Flat
+  Sec 16  — Wind Pass North / Plastic Basin / The Great Flat / Funeral Plain
+  Sec 17  — Tsimpo / Carthag / Broken Land / Funeral Plain / Old Gap
 """
 
 from ..models.territory import Territory, TerritoryType
@@ -53,7 +53,7 @@ TERRITORIES: dict[str, Territory] = {
     "Carthag": Territory(
         name="Carthag",
         territory_type=TerritoryType.STRONGHOLD,
-        sectors=[16, 17],
+        sectors=[17],
         has_spice_blow=False,
     ),
 
@@ -85,21 +85,21 @@ TERRITORIES: dict[str, Territory] = {
     "Tsimpo": Territory(
         name="Tsimpo",
         territory_type=TerritoryType.ROCK,
-        sectors=[0, 1],
+        sectors=[17],
         has_spice_blow=False,
     ),
 
     "Harg Pass": Territory(
         name="Harg Pass",
         territory_type=TerritoryType.ROCK,
-        sectors=[5, 6],
+        sectors=[4, 5, 6],
         has_spice_blow=False,
     ),
 
     "Cielago East": Territory(
         name="Cielago East",
         territory_type=TerritoryType.ROCK,
-        sectors=[7, 8],
+        sectors=[8, 9],
         has_spice_blow=False,
     ),
 
@@ -113,14 +113,14 @@ TERRITORIES: dict[str, Territory] = {
     "Wind Pass": Territory(
         name="Wind Pass",
         territory_type=TerritoryType.ROCK,
-        sectors=[14, 15],
+        sectors=[15],
         has_spice_blow=False,
     ),
 
     "Wind Pass North": Territory(
         name="Wind Pass North",
         territory_type=TerritoryType.ROCK,
-        sectors=[15, 16],
+        sectors=[16],
         has_spice_blow=False,
     ),
 
@@ -131,7 +131,7 @@ TERRITORIES: dict[str, Territory] = {
     "Broken Land": Territory(
         name="Broken Land",
         territory_type=TerritoryType.ROCK,
-        sectors=[17, 0],
+        sectors=[17, 0, 1],
         has_spice_blow=False,
     ),
 
@@ -145,7 +145,7 @@ TERRITORIES: dict[str, Territory] = {
     "Sihaya Ridge": Territory(
         name="Sihaya Ridge",
         territory_type=TerritoryType.ROCK,
-        sectors=[2, 3],
+        sectors=[3],
         has_spice_blow=False,
     ),
 
@@ -159,35 +159,35 @@ TERRITORIES: dict[str, Territory] = {
     "Shield Wall": Territory(
         name="Shield Wall",
         territory_type=TerritoryType.ROCK,
-        sectors=[4, 5],
+        sectors=[4],
         has_spice_blow=False,
     ),
 
     "Pasty Mesa": Territory(
         name="Pasty Mesa",
         territory_type=TerritoryType.ROCK,
-        sectors=[4, 5],
+        sectors=[5],
         has_spice_blow=False,
     ),
 
     "False Wall East": Territory(
         name="False Wall East",
         territory_type=TerritoryType.ROCK,
-        sectors=[5, 6],
+        sectors=[6],
         has_spice_blow=False,
     ),
 
     "South Mesa": Territory(
         name="South Mesa",
         territory_type=TerritoryType.ROCK,
-        sectors=[6, 7],
+        sectors=[7],
         has_spice_blow=False,
     ),
 
     "False Wall South": Territory(
         name="False Wall South",
         territory_type=TerritoryType.ROCK,
-        sectors=[7, 8],
+        sectors=[8],
         has_spice_blow=False,
         # Fremen starting position (3 regular forces).
     ),
@@ -195,7 +195,7 @@ TERRITORIES: dict[str, Territory] = {
     "Cielago North": Territory(
         name="Cielago North",
         territory_type=TerritoryType.ROCK,
-        sectors=[8, 9],
+        sectors=[9, 10],
         has_spice_blow=False,
     ),
 
@@ -210,14 +210,14 @@ TERRITORIES: dict[str, Territory] = {
     "Bight of the Cliff": Territory(
         name="Bight of the Cliff",
         territory_type=TerritoryType.ROCK,
-        sectors=[13, 14],
+        sectors=[14, 15],
         has_spice_blow=False,
     ),
 
     "Plastic Basin": Territory(
         name="Plastic Basin",
         territory_type=TerritoryType.ROCK,
-        sectors=[15, 16, 17],
+        sectors=[15, 16],
         has_spice_blow=False,
     ),
 
@@ -228,7 +228,7 @@ TERRITORIES: dict[str, Territory] = {
     "Imperial Basin": Territory(
         name="Imperial Basin",
         territory_type=TerritoryType.SAND,
-        sectors=[3, 4, 5],
+        sectors=[0, 1, 2],
         storm_exception=True,
         has_spice_blow=True,
         spice_blow_amount=4,
@@ -237,7 +237,7 @@ TERRITORIES: dict[str, Territory] = {
     "Arsunt": Territory(
         name="Arsunt",
         territory_type=TerritoryType.SAND,
-        sectors=[11, 12],
+        sectors=[12, 13],
         has_spice_blow=False,
     ),
 
@@ -286,7 +286,7 @@ TERRITORIES: dict[str, Territory] = {
     "The Minor Erg": Territory(
         name="The Minor Erg",
         territory_type=TerritoryType.SAND,
-        sectors=[5, 6, 7],
+        sectors=[6, 7],
         has_spice_blow=True,
         spice_blow_amount=8,
     ),
@@ -310,7 +310,7 @@ TERRITORIES: dict[str, Territory] = {
     "Meridian": Territory(
         name="Meridian",
         territory_type=TerritoryType.SAND,
-        sectors=[10, 11],
+        sectors=[11, 12],
         has_spice_blow=True,
         spice_blow_amount=6,
     ),
@@ -318,7 +318,7 @@ TERRITORIES: dict[str, Territory] = {
     "Habbanya Ridge Flat": Territory(
         name="Habbanya Ridge Flat",
         territory_type=TerritoryType.SAND,
-        sectors=[11, 12],
+        sectors=[12, 13],
         has_spice_blow=True,
         spice_blow_amount=10,
     ),
@@ -326,7 +326,7 @@ TERRITORIES: dict[str, Territory] = {
     "Habbanya Erg": Territory(
         name="Habbanya Erg",
         territory_type=TerritoryType.SAND,
-        sectors=[12, 13],
+        sectors=[13, 14],
         has_spice_blow=True,
         spice_blow_amount=8,
     ),
@@ -334,14 +334,14 @@ TERRITORIES: dict[str, Territory] = {
     "The Greater Flat": Territory(
         name="The Greater Flat",
         territory_type=TerritoryType.SAND,
-        sectors=[13, 14],
+        sectors=[14, 15],
         has_spice_blow=False,
     ),
 
     "The Great Flat": Territory(
         name="The Great Flat",
         territory_type=TerritoryType.SAND,
-        sectors=[14, 15],
+        sectors=[15, 16],
         has_spice_blow=True,
         spice_blow_amount=10,
     ),
@@ -349,7 +349,7 @@ TERRITORIES: dict[str, Territory] = {
     "Funeral Plain": Territory(
         name="Funeral Plain",
         territory_type=TerritoryType.SAND,
-        sectors=[15, 16],
+        sectors=[16, 17],
         has_spice_blow=True,
         spice_blow_amount=6,
     ),
