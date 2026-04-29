@@ -33,12 +33,42 @@ from ...services.game.nexus import (
 )
 from ...services.game.revival import resolve_free_revival, revive_forces, revive_leader
 from ...services.game.shipment import ship_forces, move_forces
+from ...services.game.bg_actions import (
+    trigger_bg_free_shipment,
+    flip_advisors_to_fighters,
+    flip_fighters_to_advisors,
+)
+from ...services.game.guild_actions import guild_cross_ship, guild_ship_to_reserves
+from ...services.game.prebattle import (
+    issue_voice,
+    acknowledge_voice,
+    ask_prescience,
+    reveal_prescience_value,
+    done_prebattle,
+)
+from ...services.game.fremen_actions import (
+    fremen_sandworm_ride,
+    fremen_skip_sandworm_ride,
+)
+from ...services.game.special_cards import (
+    play_karama_block,
+    play_karama_faction_power,
+    play_tleilaxu_ghola,
+    play_family_atomics,
+    play_hajr,
+    play_weather_control,
+    play_truthtrance,
+)
+from ...models.faction import FactionName
 from ...services.game.setup import (
     PlayerSetupConfig,
     add_player_to_lobby,
     create_game,
     create_lobby,
     initialize_game,
+    process_atreides_prescience,
+    process_bg_prediction,
+    process_fremen_placement,
     process_storm_dial,
     process_traitor_selection,
     select_faction,
@@ -326,6 +356,8 @@ async def perform_action(game_id: str, action: GameActionRequest) -> dict:
                     action.payload.get("leader_id"),
                     action.payload.get("weapon_card_id"),
                     action.payload.get("defense_card_id"),
+                    action.payload.get("special_forces_dialed", 0),
+                    action.payload.get("spice_to_expend", 0),
                 )
 
             case GameActionType.DECLARE_TRAITOR:
@@ -350,6 +382,179 @@ async def perform_action(game_id: str, action: GameActionRequest) -> dict:
             case GameActionType.PASS_NEXUS:
                 _validate_is_current_turn_player(game_state, action.player_id)
                 game_state = pass_nexus(game_state, action.player_id)
+
+            case GameActionType.BG_PREDICTION:
+                faction_str = action.payload.get("predicted_faction", "")
+                turn = action.payload.get("predicted_turn", 1)
+                predicted_faction = FactionName(faction_str)
+                game_state = process_bg_prediction(game_state, action.player_id, predicted_faction, turn)
+
+            case GameActionType.FREMEN_PLACEMENT:
+                placements = action.payload.get("placements", [])
+                game_state = process_fremen_placement(game_state, action.player_id, placements)
+
+            case GameActionType.ATREIDES_PRESCIENCE:
+                game_state = process_atreides_prescience(game_state, action.player_id)
+
+            # ------------------------------------------------------------------
+            # Faction ability actions
+            # ------------------------------------------------------------------
+
+            case GameActionType.ACK_MOVEMENT_PRESCIENCE:
+                # Atreides (or their ally) acknowledges they've seen the movement prescience reveal.
+                # Sets atreides_movement_prescience_seen=True.
+                p = _get_player_or_400(game_state, action.player_id)
+                atreides_player = next(
+                    (pl for pl in game_state.players if pl.faction == FactionName.ATREIDES),
+                    None,
+                )
+                if atreides_player is None:
+                    raise ValueError("No Atreides player in this game")
+                allowed = p.faction == FactionName.ATREIDES or (
+                    game_state.mode.value == "advanced" and atreides_player.ally == p.faction
+                )
+                if not allowed:
+                    raise ValueError("Only Atreides (or their ally) can acknowledge movement prescience")
+                game_state = game_state.model_copy(update={"atreides_movement_prescience_seen": True})
+
+            case GameActionType.BG_FREE_SHIP:
+                game_state = trigger_bg_free_shipment(
+                    game_state,
+                    action.player_id,
+                    action.payload.get("territory_name", ""),
+                    action.payload.get("sector", 0),
+                    bool(action.payload.get("as_advisor", False)),
+                )
+
+            case GameActionType.PASS_BG_FREE_SHIP:
+                # BG declines their free out-of-turn shipment — clear the pending flag
+                player_obj = next(
+                    (p for p in game_state.players if p.id == action.player_id), None
+                )
+                if player_obj is None or player_obj.faction.value != "bene_gesserit":
+                    raise ValueError("Only Bene Gesserit can pass the free ship")
+                game_state = game_state.model_copy(update={
+                    "bg_free_ship_pending": False,
+                    "bg_free_ship_last_territory": None,
+                })
+
+            case GameActionType.FLIP_ADVISORS_TO_FIGHTERS:
+                game_state = flip_advisors_to_fighters(
+                    game_state,
+                    action.player_id,
+                    action.payload.get("territory_name", ""),
+                )
+
+            case GameActionType.FLIP_FIGHTERS_TO_ADVISORS:
+                game_state = flip_fighters_to_advisors(
+                    game_state,
+                    action.player_id,
+                    action.payload.get("territory_name", ""),
+                )
+
+            case GameActionType.GUILD_CROSS_SHIP:
+                game_state = guild_cross_ship(
+                    game_state,
+                    action.player_id,
+                    action.payload.get("from_territory", ""),
+                    action.payload.get("from_sector", 0),
+                    action.payload.get("to_territory", ""),
+                    action.payload.get("to_sector", 0),
+                    action.payload.get("regular_count", 0),
+                    action.payload.get("special_count", 0),
+                )
+
+            case GameActionType.GUILD_SHIP_TO_RESERVES:
+                game_state = guild_ship_to_reserves(
+                    game_state,
+                    action.player_id,
+                    action.payload.get("from_territory", ""),
+                    action.payload.get("from_sector", 0),
+                    action.payload.get("regular_count", 0),
+                    action.payload.get("special_count", 0),
+                )
+
+            case GameActionType.ISSUE_VOICE:
+                target_str = action.payload.get("target_faction", "")
+                target_faction = FactionName(target_str)
+                game_state = issue_voice(
+                    game_state,
+                    action.player_id,
+                    target_faction,
+                    action.payload.get("command", ""),
+                    action.payload.get("card_type", ""),
+                )
+
+            case GameActionType.ACKNOWLEDGE_VOICE:
+                game_state = acknowledge_voice(game_state, action.player_id)
+
+            case GameActionType.ASK_PRESCIENCE:
+                game_state = ask_prescience(
+                    game_state,
+                    action.player_id,
+                    action.payload.get("element", ""),
+                )
+
+            case GameActionType.REVEAL_PRESCIENCE:
+                game_state = reveal_prescience_value(
+                    game_state,
+                    action.player_id,
+                    action.payload.get("revealed_value", ""),
+                )
+
+            case GameActionType.DONE_PREBATTLE:
+                game_state = done_prebattle(game_state, action.player_id)
+
+            case GameActionType.FREMEN_SANDWORM_RIDE:
+                game_state = fremen_sandworm_ride(
+                    game_state,
+                    action.player_id,
+                    action.payload.get("to_territory", ""),
+                    action.payload.get("to_sector", 0),
+                    action.payload.get("regular_count", 0),
+                    action.payload.get("special_count", 0),
+                )
+
+            case GameActionType.FREMEN_SKIP_SANDWORM_RIDE:
+                game_state = fremen_skip_sandworm_ride(game_state, action.player_id)
+
+            # ------------------------------------------------------------------
+            # Special treachery card actions
+            # ------------------------------------------------------------------
+
+            case GameActionType.PLAY_KARAMA_BLOCK:
+                target_str = action.payload.get("target_faction", "")
+                target = FactionName(target_str)
+                game_state = play_karama_block(game_state, action.player_id, target)
+
+            case GameActionType.PLAY_KARAMA_POWER:
+                game_state = play_karama_faction_power(
+                    game_state, action.player_id, action.payload
+                )
+
+            case GameActionType.PLAY_TLEILAXU_GHOLA:
+                game_state = play_tleilaxu_ghola(
+                    game_state,
+                    action.player_id,
+                    leader_id=action.payload.get("leader_id"),
+                    force_count=int(action.payload.get("force_count", 0)),
+                )
+
+            case GameActionType.PLAY_FAMILY_ATOMICS:
+                game_state = play_family_atomics(game_state, action.player_id)
+
+            case GameActionType.PLAY_HAJR:
+                game_state = play_hajr(game_state, action.player_id)
+
+            case GameActionType.PLAY_WEATHER_CONTROL:
+                sectors = int(action.payload.get("sectors", 0))
+                game_state = play_weather_control(game_state, action.player_id, sectors)
+
+            case GameActionType.PLAY_TRUTHTRANCE:
+                target_raw = action.payload.get("target_faction", "")
+                target = FactionName(target_raw)
+                question = action.payload.get("question", "")
+                game_state = play_truthtrance(game_state, action.player_id, target, question)
 
             case _:
                 raise HTTPException(
@@ -404,8 +609,26 @@ def _validate_is_current_turn_player(game_state: GameState, player_id: str) -> N
     Check that the acting player is the one whose turn it is.
     In interactive phases, only the current turn player can advance
     or take phase-specific actions.
+
+    Special case: in the Nexus phase the active player is tracked by
+    nexus_state.current_faction (not current_player_index), because each
+    player acts in sequence without the index being updated between factions.
     """
     if not game_state.players:
+        return
+
+    # Nexus: determine the current player from nexus_state.current_faction
+    if (game_state.current_phase == GamePhase.NEXUS
+            and game_state.nexus_state is not None):
+        current_faction = game_state.nexus_state.current_faction
+        current_player = next(
+            (p for p in game_state.players if p.faction.value == current_faction),
+            None,
+        )
+        if current_player and current_player.id != player_id:
+            raise ValueError(
+                f"It's {current_player.name}'s Nexus turn, not yours."
+            )
         return
 
     current_idx = game_state.current_player_index
@@ -415,3 +638,11 @@ def _validate_is_current_turn_player(game_state: GameState, player_id: str) -> N
             raise ValueError(
                 f"It's {current_player.name}'s turn, not yours."
             )
+
+
+def _get_player_or_400(game_state: GameState, player_id: str):
+    """Look up a player by ID; raises ValueError (caught → 400) if not found."""
+    for p in game_state.players:
+        if p.id == player_id:
+            return p
+    raise ValueError(f"Player not found: {player_id}")

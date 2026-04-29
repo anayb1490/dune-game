@@ -28,11 +28,15 @@ function findLeaderName(players, leaderId) {
   return leaderId // fallback to ID
 }
 
-export default function BattlePanel({ activeBattle, myPlayer, players, onSubmitPlan, onDeclareTraitor }) {
+export default function BattlePanel({ activeBattle, myPlayer, players, gameState, onSubmitPlan, onDeclareTraitor }) {
   const [forcesDialed, setForcesDialed] = useState(0)
+  const [specialForcesDialed, setSpecialForcesDialed] = useState(0)
+  const [spiceToExpend, setSpiceToExpend] = useState(0)
   const [selectedLeader, setSelectedLeader] = useState('')
   const [selectedWeapon, setSelectedWeapon] = useState('')
   const [selectedDefense, setSelectedDefense] = useState('')
+
+  const isAdvanced = gameState?.mode === 'advanced'
 
   if (!activeBattle || !myPlayer) return null
 
@@ -54,10 +58,12 @@ export default function BattlePanel({ activeBattle, myPlayer, players, onSubmitP
 
   const awaitingTraitor = activeBattle.awaiting_traitor_declarations === true
 
-  // Count my forces in this territory
-  const myForcesInTerritory = (myPlayer.forces_on_board || [])
+  // Count my forces in this territory (regular and special separately)
+  const myForceGroups = (myPlayer.forces_on_board || [])
     .filter(fg => fg.territory_name === activeBattle.territory_name)
-    .reduce((sum, fg) => sum + (fg.regular_count || 0) + (fg.special_count || 0), 0)
+  const myRegularInTerritory = myForceGroups.reduce((s, fg) => s + (fg.regular_count || 0), 0)
+  const mySpecialInTerritory = myForceGroups.reduce((s, fg) => s + (fg.special_count || 0), 0)
+  const myForcesInTerritory = myRegularInTerritory + mySpecialInTerritory
 
   // Available leaders
   const availableLeaders = (myPlayer.leaders || []).filter(l => l.status === 'available')
@@ -83,6 +89,8 @@ export default function BattlePanel({ activeBattle, myPlayer, players, onSubmitP
       selectedLeader || null,
       selectedWeapon || null,
       selectedDefense || null,
+      specialForcesDialed,
+      spiceToExpend,
     )
   }
 
@@ -109,26 +117,59 @@ export default function BattlePanel({ activeBattle, myPlayer, players, onSubmitP
         </div>
       </div>
 
+      {/* ── PRE-BATTLE INCOMPLETE WARNING ── */}
+      {isParticipant && !myPlanSubmitted && !awaitingTraitor && activeBattle.prebattle_complete === false && (
+        <div className="border border-yellow-800/50 bg-yellow-900/10 rounded p-2 text-center">
+          <p className="text-yellow-500 text-[10px] font-bold">⏳ Pre-Battle Phase Active</p>
+          <p className="text-gray-500 text-[9px] mt-0.5">
+            Resolve Voice &amp; Prescience above before submitting your plan.
+          </p>
+        </div>
+      )}
+
       {/* ── BATTLE PLAN SUBMISSION ── */}
-      {isParticipant && !myPlanSubmitted && !awaitingTraitor && (
+      {isParticipant && !myPlanSubmitted && !awaitingTraitor && (activeBattle.prebattle_complete !== false) && (
         <div className="space-y-1.5">
           <p className="text-gray-500 text-[10px] uppercase px-1">
             Your Plan ({isAttacker ? 'Attacker' : 'Defender'})
           </p>
 
-          {/* Forces dial */}
+          {/* Regular forces dial */}
           <div className="flex items-center gap-2">
-            <span className="text-gray-400 text-[10px] w-10">Dial</span>
+            <span className="text-gray-400 text-[10px] w-14">Regular</span>
             <input
               type="number"
               min={0}
-              max={myForcesInTerritory}
-              value={forcesDialed}
-              onChange={(e) => setForcesDialed(Math.max(0, Math.min(myForcesInTerritory, parseInt(e.target.value) || 0)))}
+              max={myRegularInTerritory}
+              value={forcesDialed - specialForcesDialed}
+              onChange={(e) => {
+                const reg = Math.max(0, Math.min(myRegularInTerritory, parseInt(e.target.value) || 0))
+                setForcesDialed(reg + specialForcesDialed)
+              }}
               className="bg-[#0f0e0b] border border-[#3a3020] rounded px-2 py-1 text-sand-light text-xs font-mono w-14 focus:border-sand outline-none"
             />
-            <span className="text-gray-500 text-[10px]">/ {myForcesInTerritory}</span>
+            <span className="text-gray-500 text-[10px]">/ {myRegularInTerritory}</span>
           </div>
+
+          {/* Special forces dial (only if player has special forces here) */}
+          {mySpecialInTerritory > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-gray-400 text-[10px] w-14">Special</span>
+              <input
+                type="number"
+                min={0}
+                max={mySpecialInTerritory}
+                value={specialForcesDialed}
+                onChange={(e) => {
+                  const sp = Math.max(0, Math.min(mySpecialInTerritory, parseInt(e.target.value) || 0))
+                  setSpecialForcesDialed(sp)
+                  setForcesDialed((forcesDialed - specialForcesDialed) + sp)
+                }}
+                className="bg-[#0f0e0b] border border-[#3a3020] rounded px-2 py-1 text-sand-light text-xs font-mono w-14 focus:border-sand outline-none"
+              />
+              <span className="text-gray-500 text-[10px]">/ {mySpecialInTerritory}</span>
+            </div>
+          )}
 
           {/* Leader select */}
           <div className="flex items-center gap-2">
@@ -189,7 +230,28 @@ export default function BattlePanel({ activeBattle, myPlayer, players, onSubmitP
             </select>
           </div>
 
-          <Button onClick={handleSubmit} className="w-full text-xs py-1">
+          {/* Spice expenditure — Advanced mode only (supports forces to prevent half-strength) */}
+          {isAdvanced && (
+            <div className="flex items-center gap-2 mt-1 pt-1 border-t border-[#3a3020]">
+              <span className="text-gray-400 text-[10px] w-14">Spice</span>
+              <input
+                type="number"
+                min={0}
+                max={Math.min(myPlayer.spice || 0, forcesDialed)}
+                value={spiceToExpend}
+                onChange={(e) => setSpiceToExpend(Math.max(0, Math.min(myPlayer.spice || 0, forcesDialed, parseInt(e.target.value) || 0)))}
+                className="bg-[#0f0e0b] border border-[#3a3020] rounded px-2 py-1 text-spice text-xs font-mono w-14 focus:border-sand outline-none"
+              />
+              <span className="text-gray-500 text-[9px]">supports {spiceToExpend}/{forcesDialed} forces</span>
+            </div>
+          )}
+          {isAdvanced && forcesDialed > 0 && (
+            <p className="text-gray-600 text-[9px] px-1">
+              Unsupported forces fight at ½ strength in Advanced mode
+            </p>
+          )}
+
+          <Button onClick={handleSubmit} className="w-full text-xs py-1 mt-1">
             Submit Battle Plan
           </Button>
         </div>

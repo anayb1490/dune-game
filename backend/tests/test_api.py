@@ -286,10 +286,27 @@ class TestPerformAction:
 
         # Now advance through remaining phases.
         phases_seen = []
-        for _ in range(50):
+        for _ in range(80):
             resp = client.get(f"/api/games/{game_id}")
             state = resp.json()
             phase = state["current_phase"]
+
+            # Handle nexus — all players must pass (or act) before advance_phase works
+            if phase == "nexus":
+                ns = state.get("nexus_state")
+                if ns is not None:
+                    current_faction = ns.get("current_faction")
+                    faction_player = next(
+                        (p for p in state["players"] if p["faction"] == current_faction),
+                        None,
+                    )
+                    if faction_player:
+                        client.post(f"/api/games/{game_id}/action", json={
+                            "player_id": faction_player["id"],
+                            "action_type": "pass_nexus",
+                        })
+                    phases_seen.append("nexus")
+                    continue  # Re-check state next iteration
 
             # Determine the right player to advance
             current_idx = state.get("current_player_index", 0)

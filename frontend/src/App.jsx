@@ -15,11 +15,23 @@ import {
   shipForces,
   moveForces,
   submitBattlePlan,
+  submitBattlePlanAdvanced,
   declareTraitor,
   proposeAlliance,
   acceptAlliance,
   breakAlliance,
   passNexus,
+  submitBgPrediction,
+  submitFremenPlacement,
+  submitAtreidesPrescienceAck,
+  issueVoice,
+  acknowledgeVoice,
+  askPrescience,
+  revealPrescience,
+  donePrebattle,
+  gameAction,
+  fremenSandwormRide,
+  fremenSkipSandwormRide,
 } from './services/api.js'
 import { useWebSocket } from './hooks/useWebSocket.js'
 import GameView from './components/game/GameView.jsx'
@@ -27,6 +39,10 @@ import HomeScreen from './components/lobby/HomeScreen.jsx'
 import LobbyView from './components/lobby/LobbyView.jsx'
 import TraitorSelectionView from './components/setup/TraitorSelectionView.jsx'
 import StormDialView from './components/setup/StormDialView.jsx'
+import BgPredictionView from './components/setup/BgPredictionView.jsx'
+import FremenPlacementView from './components/setup/FremenPlacementView.jsx'
+import AtreidesPrescienceView from './components/setup/AtreidesPrescienceView.jsx'
+import RulesChat from './components/game/RulesChat.jsx'
 
 // Generate a stable player ID for this browser tab
 function generatePlayerId() {
@@ -58,6 +74,9 @@ export default function App() {
       const sub = gameState.setup_state?.sub_phase
       if (sub === 'traitor_selection') return 'traitor_selection'
       if (sub === 'storm_dial') return 'storm_dial'
+      if (sub === 'bg_prediction') return 'bg_prediction'
+      if (sub === 'fremen_placement') return 'fremen_placement'
+      if (sub === 'atreides_prescience') return 'atreides_prescience'
       return 'setup'
     }
     return 'game'
@@ -131,6 +150,35 @@ export default function App() {
     }
   }
 
+  async function handleBgPrediction(predictedFaction, predictedTurn) {
+    try {
+      setError(null)
+      await submitBgPrediction(gameId, playerId, predictedFaction, predictedTurn)
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
+  }
+
+  async function handleFremenPlacement(placements) {
+    try {
+      setError(null)
+      await submitFremenPlacement(gameId, playerId, placements)
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
+  }
+
+  async function handleAtreidesPrescienceAck() {
+    try {
+      setError(null)
+      await submitAtreidesPrescienceAck(gameId, playerId)
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
   // ----- Action guard (prevents double-clicks) -----
 
   /**
@@ -195,14 +243,60 @@ export default function App() {
 
   // ----- Battle handlers -----
 
-  async function handleSubmitBattlePlan(forcesDialed, leaderId, weaponCardId, defenseCardId) {
+  async function handleSubmitBattlePlan(forcesDialed, leaderId, weaponCardId, defenseCardId, specialForcesDialed = 0, spiceToExpend = 0) {
     if (!gameId) return
-    await guardedAction(() => submitBattlePlan(gameId, playerId, forcesDialed, leaderId, weaponCardId, defenseCardId))
+    await guardedAction(() => submitBattlePlanAdvanced(gameId, playerId, forcesDialed, leaderId, weaponCardId, defenseCardId, specialForcesDialed, spiceToExpend))
   }
 
   async function handleDeclareTraitor(callTraitor) {
     if (!gameId) return
     await guardedAction(() => declareTraitor(gameId, playerId, callTraitor))
+  }
+
+  // ----- Pre-battle handlers -----
+
+  async function handleIssueVoice(targetFaction, command, cardType) {
+    if (!gameId) return
+    await guardedAction(() => issueVoice(gameId, playerId, targetFaction, command, cardType))
+  }
+
+  async function handleAcknowledgeVoice() {
+    if (!gameId) return
+    await guardedAction(() => acknowledgeVoice(gameId, playerId))
+  }
+
+  async function handleAskPrescience(element) {
+    if (!gameId) return
+    await guardedAction(() => askPrescience(gameId, playerId, element))
+  }
+
+  async function handleRevealPrescience(revealedValue) {
+    if (!gameId) return
+    await guardedAction(() => revealPrescience(gameId, playerId, revealedValue))
+  }
+
+  async function handleDonePrebattle() {
+    if (!gameId) return
+    await guardedAction(() => donePrebattle(gameId, playerId))
+  }
+
+  // ----- Generic action handler (special cards, etc.) -----
+
+  async function handleAction(actionType, payload) {
+    if (!gameId) return
+    await guardedAction(() => gameAction(gameId, playerId, actionType, payload))
+  }
+
+  // ----- Fremen sandworm ride -----
+
+  async function handleFremenRide(toTerritory, toSector, regularCount, specialCount) {
+    if (!gameId) return
+    await guardedAction(() => fremenSandwormRide(gameId, playerId, toTerritory, toSector, regularCount, specialCount))
+  }
+
+  async function handleFremenSkipRide() {
+    if (!gameId) return
+    await guardedAction(() => fremenSkipSandwormRide(gameId, playerId))
   }
 
   // ----- Nexus (Alliance) handlers -----
@@ -296,6 +390,30 @@ export default function App() {
         />
       )}
 
+      {screen === 'bg_prediction' && (
+        <BgPredictionView
+          gameState={gameState}
+          playerId={playerId}
+          onSubmitPrediction={handleBgPrediction}
+        />
+      )}
+
+      {screen === 'fremen_placement' && (
+        <FremenPlacementView
+          gameState={gameState}
+          playerId={playerId}
+          onSubmitPlacement={handleFremenPlacement}
+        />
+      )}
+
+      {screen === 'atreides_prescience' && (
+        <AtreidesPrescienceView
+          gameState={gameState}
+          playerId={playerId}
+          onAcknowledge={handleAtreidesPrescienceAck}
+        />
+      )}
+
       {screen === 'game' && (
         <GameView
           gameState={gameState}
@@ -314,8 +432,18 @@ export default function App() {
           onAcceptAlliance={handleAcceptAlliance}
           onBreakAlliance={handleBreakAlliance}
           onPassNexus={handlePassNexus}
+          onIssueVoice={handleIssueVoice}
+          onAcknowledgeVoice={handleAcknowledgeVoice}
+          onAskPrescience={handleAskPrescience}
+          onRevealPrescience={handleRevealPrescience}
+          onDonePrebattle={handleDonePrebattle}
+          onAction={handleAction}
+          onFremenRide={handleFremenRide}
+          onFremenSkipRide={handleFremenSkipRide}
         />
       )}
+      {/* Rules explainer — always available once a game exists */}
+      {gameState && screen !== 'home' && <RulesChat />}
     </div>
   )
 }

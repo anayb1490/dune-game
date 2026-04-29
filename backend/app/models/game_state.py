@@ -37,6 +37,9 @@ class GameMode(str, Enum):
 class SetupSubPhase(str, Enum):
     TRAITOR_SELECTION = "traitor_selection"
     STORM_DIAL = "storm_dial"
+    BG_PREDICTION = "bg_prediction"
+    FREMEN_PLACEMENT = "fremen_placement"
+    ATREIDES_PRESCIENCE = "atreides_prescience"
 
 
 # =============================================================================
@@ -102,9 +105,10 @@ class BattleResult(BaseModel):
     winner_faction: Optional[FactionName] = None
     loser_faction: Optional[FactionName] = None
 
-    # Battle totals (None when traitor/explosion short-circuits calculation)
-    attacker_total: Optional[int] = None
-    defender_total: Optional[int] = None
+    # Battle totals (None when traitor/explosion short-circuits calculation).
+    # Advanced mode may produce 0.5 increments due to unsupported forces.
+    attacker_total: Optional[float] = None
+    defender_total: Optional[float] = None
 
     attacker_forces_lost: int = 0
     defender_forces_lost: int = 0
@@ -131,6 +135,46 @@ class ActiveBattle(BaseModel):
     attacker_faction: FactionName
     defender_faction: FactionName
 
+    # ---------------------------------------------------------------------------
+    # Pre-battle faction abilities (resolved BEFORE plans are submitted)
+    # ---------------------------------------------------------------------------
+
+    # BG Voice: BG may command opponent to play/not play a specific card type.
+    # Format: {"command": "play"|"not_play", "card_type": "poison_weapon"|"projectile_weapon"|
+    #          "lasgun"|"snooper"|"shield"|"worthless"|"cheap_hero"}
+    # Cleared once acknowledged by the target player.
+    voice_command: Optional[dict] = Field(
+        default=None,
+        description="BG Voice command for this battle. Set by BG before plans are submitted."
+    )
+    voice_target_faction: Optional[FactionName] = Field(
+        default=None,
+        description="Which faction the Voice command is directed at."
+    )
+    voice_acknowledged: bool = Field(
+        default=False,
+        description="True once the target player has acknowledged the Voice command."
+    )
+
+    # Atreides Battle Prescience: Atreides may ask opponent to reveal one element.
+    # Element: "leader" | "weapon" | "defense" | "number"
+    prescience_element_asked: Optional[str] = Field(
+        default=None,
+        description="Which element Atreides asked their opponent to reveal."
+    )
+    prescience_revealed_value: Optional[str] = Field(
+        default=None,
+        description="The value revealed by opponent in response to Atreides prescience."
+    )
+
+    # Which faction (attacker or defender) is Atreides in this battle (for prescience)
+    atreides_faction: Optional[FactionName] = None
+
+    # Pre-battle actions done flags: True when that faction has finished all pre-battle
+    # ability usage (Voice, Prescience) or explicitly passed.
+    attacker_prebattle_done: bool = False
+    defender_prebattle_done: bool = False
+
     # Plans are hidden (None) until both players have submitted
     attacker_plan: Optional[BattlePlan] = None
     defender_plan: Optional[BattlePlan] = None
@@ -141,6 +185,22 @@ class ActiveBattle(BaseModel):
     defender_traitor_called: Optional[bool] = None
 
     is_resolved: bool = False
+
+    # Atreides Karama power: Atreides may look at any one player's full Battle Plan.
+    # The revealed plan is stored here and exposed only to Atreides via the state filter.
+    atreides_karama_revealed_faction: Optional[FactionName] = Field(
+        default=None,
+        description="Faction whose plan was revealed via Atreides Karama power."
+    )
+    atreides_karama_revealed_plan: Optional[BattlePlan] = Field(
+        default=None,
+        description="The full Battle Plan revealed via Atreides Karama power."
+    )
+
+    @property
+    def prebattle_complete(self) -> bool:
+        """True when both sides have finished pre-battle actions."""
+        return self.attacker_prebattle_done and self.defender_prebattle_done
 
 
 # =============================================================================
@@ -175,6 +235,9 @@ class SetupState(BaseModel):
     # The two player IDs designated for the storm dial
     storm_dial_players: list[str] = Field(default_factory=list)
 
+    # Atreides prescience (Advanced): top cards from treachery deck for Atreides to see
+    atreides_prescience_cards: list[dict] = Field(default_factory=list)
+
 
 class BiddingState(BaseModel):
     """
@@ -192,6 +255,9 @@ class BiddingState(BaseModel):
 
     # Tracks which factions have passed on the current card
     factions_passed: list[FactionName] = Field(default_factory=list)
+
+    # Who opened bidding on the current card (used to determine next card's opener)
+    opening_bidder: Optional[FactionName] = None
 
     # Atreides prescience: ID of the card currently visible to Atreides (Advanced)
     atreides_prescience_card_id: Optional[str] = None
@@ -294,6 +360,37 @@ class GameState(BaseModel):
     # the game engine can check the win condition without searching players.
     bg_prediction_revealed: bool = False
 
+    # Advanced: Double Spice Blow uses two separate discard piles (A and B).
+    # Basic mode continues to use spice_discard only.
+    spice_discard_a: list[SpiceCard] = Field(
+        default_factory=list,
+        description="Advanced only: discard pile for the first spice blow draw."
+    )
+    spice_discard_b: list[SpiceCard] = Field(
+        default_factory=list,
+        description="Advanced only: discard pile for the second spice blow draw."
+    )
+
+    # Advanced Fremen: after Shai-Hulud attacks a territory, Fremen may ride the
+    # sandworm and move their forces from that territory to any other territory.
+    # Set to the attacked territory name after Nexus; cleared after ride or skip.
+    fremen_sandworm_ride_territory: Optional[str] = Field(
+        default=None,
+        description="Territory attacked by sandworm this turn; Fremen may ride from here."
+    )
+
+    # Atreides Movement Prescience: top-of-spice-deck card revealed to Atreides
+    # before Movement Phase starts. Set by engine entering Shipment phase; cleared
+    # after Atreides acknowledges or at phase end.
+    atreides_movement_prescience: Optional[dict] = Field(
+        default=None,
+        description="Card dict revealed to Atreides at start of Shipment phase (Advanced)."
+    )
+    atreides_movement_prescience_seen: bool = Field(
+        default=False,
+        description="True once Atreides has acknowledged the movement prescience reveal."
+    )
+
     # Phase messages — populated when automated phases resolve so players
     # can see what happened before the host advances to the next phase.
     phase_messages: list[str] = Field(default_factory=list)
@@ -307,3 +404,54 @@ class GameState(BaseModel):
     # Populated when an alliance wins — both winner and ally_winner are victorious
     ally_winner: Optional[FactionName] = None
     is_game_over: bool = False
+
+    # Human-readable description of the win condition (set alongside winner)
+    win_condition: Optional[str] = Field(
+        default=None,
+        description="How the game was won (e.g. '3 strongholds', 'BG prediction', etc.)"
+    )
+
+    # Advanced: Shield Wall destroyed by Family Atomics card
+    shield_wall_destroyed: bool = Field(
+        default=False,
+        description="True once a player has detonated Family Atomics, permanently."
+    )
+
+    # Karama blocking: a played Karama blocks the named faction's special ability
+    # for the remainder of the current turn only.
+    karama_blocked_faction: Optional[FactionName] = Field(
+        default=None,
+        description="Faction whose special ability is blocked by a Karama card this turn."
+    )
+    karama_blocked_turn: int = Field(
+        default=0,
+        description="The turn number when the Karama block was applied."
+    )
+
+    # Hajr: grants one additional force-move to the named faction this turn.
+    hajr_extra_move_faction: Optional[FactionName] = Field(
+        default=None,
+        description="Faction that has an extra movement action this turn from Hajr."
+    )
+
+    # Weather Control: overrides the next storm movement with a fixed sector count.
+    weather_control_override: Optional[int] = Field(
+        default=None,
+        ge=0,
+        le=10,
+        description="If set, the next Storm Phase moves the storm this many sectors."
+    )
+
+    # BG free ship: set when any non-BG faction ships during Shipment phase.
+    # Cleared when BG uses or passes their free ship, or the current turn advances.
+    bg_free_ship_pending: bool = Field(
+        default=False,
+        description="True when BG is eligible to take their free out-of-turn shipment."
+    )
+    bg_free_ship_last_territory: Optional[str] = Field(
+        default=None,
+        description=(
+            "Territory the triggering faction just shipped to. "
+            "Advanced: BG may ship there or to Polar Sink. Basic: Polar Sink only."
+        ),
+    )

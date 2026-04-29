@@ -5,6 +5,13 @@ The Bidding Phase is an auction: Treachery Cards from the deck are sold
 one at a time to the highest bidder. Players spend spice to buy weapons,
 defenses, and special cards that they'll use in battle.
 
+Rulebook clarifications implemented here:
+  - ROTATING START: Each card's auction opens with the next eligible player
+    to the right of whoever opened the previous card's bidding. (p.8)
+  - ALL-PASS RULE: If all eligible players pass on a card with no bids
+    placed, ALL remaining unsold cards are returned to the top of the
+    Treachery Deck and the Bidding Phase ends immediately. (p.8)
+
 Entry points:
     init_bidding(game_state) -> GameState
     place_bid(game_state, player_id, amount) -> GameState
@@ -50,7 +57,7 @@ def init_bidding(game_state: GameState) -> GameState:
     cards_for_auction = game_state.treachery_deck[:num_cards]
     remaining_deck = game_state.treachery_deck[num_cards:]
 
-    # Find the first eligible bidder in turn order
+    # Find the first eligible bidder (first player in turn order)
     first_bidder = _get_first_eligible_bidder(game_state)
 
     # Atreides prescience: reveal the first card to Atreides
@@ -62,6 +69,7 @@ def init_bidding(game_state: GameState) -> GameState:
         current_high_bidder=None,
         current_high_bid=0,
         current_bidder=first_bidder,
+        opening_bidder=first_bidder,
         factions_passed=[],
         atreides_prescience_card_id=prescience_card_id,
     )
@@ -137,8 +145,12 @@ def pass_bid(game_state: GameState, player_id: str) -> GameState:
     """
     A player passes (declines to bid) on the current card.
 
-    If only one bidder remains, they win the auction.
-    If ALL players pass with no bids placed, the card is discarded.
+    If only one bidder remains after this pass and they hold the high bid,
+    they win the auction.
+
+    If ALL players pass with no bids placed, ALL remaining unsold cards
+    (including the current one) are returned to the top of the Treachery
+    Deck and the Bidding Phase ends immediately.
     """
     bs = game_state.bidding_state
     if bs is None:
@@ -166,12 +178,12 @@ def pass_bid(game_state: GameState, player_id: str) -> GameState:
         return _resolve_current_auction(updated_state)
 
     if len(non_passed) == 0:
-        # Everyone passed — either resolve the bid or discard
+        # Everyone passed — either resolve the bid or end bidding
         if updated_bs.current_high_bidder is not None:
             return _resolve_current_auction(updated_state)
         else:
-            # No one bid at all — discard the card and move on
-            return _discard_and_advance(updated_state)
+            # ALL-PASS RULE: No one bid at all — return remaining cards to deck
+            return _return_cards_to_deck(updated_state)
 
     # More bidders remain — advance to the next one
     return _advance_to_next_bidder(updated_state)
@@ -258,38 +270,47 @@ def _resolve_current_auction(game_state: GameState) -> GameState:
     return _advance_to_next_card(updated_state)
 
 
-def _discard_and_advance(game_state: GameState) -> GameState:
-    """No one bid on the current card — discard it and move on."""
+def _return_cards_to_deck(game_state: GameState) -> GameState:
+    """
+    ALL-PASS RULE: Everyone passed on the current card with no bids.
+    Return all remaining unsold cards (current card + any not yet auctioned)
+    to the TOP of the Treachery Deck, then end the Bidding Phase.
+    """
     bs = game_state.bidding_state
-    card = bs.cards_up_for_bid[bs.current_card_index]
+    # All cards from current_card_index onwards are unsold
+    unsold_cards = list(bs.cards_up_for_bid[bs.current_card_index:])
+    restored_deck = unsold_cards + list(game_state.treachery_deck)
 
-    updated_discard = list(game_state.treachery_discard) + [card]
-    updated_state = game_state.model_copy(update={
-        "treachery_discard": updated_discard,
+    return game_state.model_copy(update={
+        "treachery_deck": restored_deck,
+        "bidding_state": None,
+        "current_phase": next_phase(GamePhase.BIDDING),
+        "current_player_index": 0,
     })
-
-    return _advance_to_next_card(updated_state)
 
 
 def _advance_to_next_card(game_state: GameState) -> GameState:
     """
     Move to the next card in the auction, or end bidding if all cards
     have been auctioned.
+
+    The next card's opening bidder is the next eligible player to the
+    right of whoever opened the current card's bidding (rotating start rule).
     """
     bs = game_state.bidding_state
     next_index = bs.current_card_index + 1
 
     if next_index >= len(bs.cards_up_for_bid):
         # All cards auctioned — end the Bidding phase.
-        # Reset current_player_index so the Revival phase starts at player 0.
         return game_state.model_copy(update={
             "bidding_state": None,
             "current_phase": next_phase(GamePhase.BIDDING),
             "current_player_index": 0,
         })
 
-    # Reset for the next card's auction
-    first_bidder = _get_first_eligible_bidder(game_state)
+    # ROTATING START: next opener is the next eligible player to the right
+    # of whoever opened the current card's auction.
+    next_opener = _get_next_card_opener(game_state, bs.opening_bidder)
     next_card = bs.cards_up_for_bid[next_index]
     prescience_card_id = _get_prescience_card_id(game_state, next_card)
 
@@ -298,7 +319,8 @@ def _advance_to_next_card(game_state: GameState) -> GameState:
         current_card_index=next_index,
         current_high_bidder=None,
         current_high_bid=0,
-        current_bidder=first_bidder,
+        current_bidder=next_opener,
+        opening_bidder=next_opener,
         factions_passed=[],
         atreides_prescience_card_id=prescience_card_id,
     )
@@ -319,10 +341,10 @@ def _advance_to_next_bidder(game_state: GameState) -> GameState:
     ]
 
     if not eligible_factions:
-        # No one left — resolve or discard
+        # No one left — resolve or return to deck
         if bs.current_high_bidder is not None:
             return _resolve_current_auction(game_state)
-        return _discard_and_advance(game_state)
+        return _return_cards_to_deck(game_state)
 
     # Find the current bidder's position and advance to the next
     current = bs.current_bidder
@@ -345,7 +367,43 @@ def _advance_to_next_bidder(game_state: GameState) -> GameState:
     # Shouldn't reach here, but safety fallback
     if bs.current_high_bidder is not None:
         return _resolve_current_auction(game_state)
-    return _discard_and_advance(game_state)
+    return _return_cards_to_deck(game_state)
+
+
+def _get_next_card_opener(
+    game_state: GameState,
+    prev_opener: FactionName | None,
+) -> FactionName | None:
+    """
+    ROTATING START RULE: The opening bidder for the next card is the next
+    eligible player seated to the right of whoever opened the previous card.
+
+    If prev_opener is None or no longer eligible, fall back to the standard
+    first-eligible-from-first-player logic.
+    """
+    eligible = _get_eligible_players(game_state)
+    if not eligible:
+        return None
+
+    eligible_factions = {p.faction for p in eligible}
+    all_factions = [p.faction for p in game_state.players]
+
+    if prev_opener is None or prev_opener not in all_factions:
+        # Fallback: first eligible player from first_player_index
+        return _get_first_eligible_bidder(game_state)
+
+    # Start from the position immediately to the right of prev_opener
+    try:
+        start_idx = all_factions.index(prev_opener) + 1
+    except ValueError:
+        start_idx = 0
+
+    for i in range(len(all_factions)):
+        idx = (start_idx + i) % len(all_factions)
+        if all_factions[idx] in eligible_factions:
+            return all_factions[idx]
+
+    return eligible[0].faction
 
 
 def _get_eligible_players(game_state: GameState) -> list[Player]:

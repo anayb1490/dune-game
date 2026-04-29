@@ -29,6 +29,45 @@ const FACTION_COLORS = {
   emperor:       'text-orange-400',
 }
 
+// Alliance bonuses reference (sorted pair key)
+const ALLIANCE_BONUSES = {
+  'atreides+fremen':
+    'Atreides can look at Fremen sandworm cards. Fremen can use Atreides prescience on one card per bidding round.',
+  'atreides+bene_gesserit':
+    'Atreides: BG Advisors don\'t block prescience. BG: use Atreides prescience on one card per bidding round.',
+  'atreides+spacing_guild':
+    'Atreides: see Guild shipping costs. Guild: use Atreides prescience on one card per bidding round.',
+  'atreides+harkonnen':
+    'Atreides: look at one Harkonnen treachery card per turn. Harkonnen: call traitor against Atreides leaders.',
+  'atreides+emperor':
+    'Atreides: can call traitor against Emperor leaders. Emperor: reduced Sardaukar deployment cost.',
+  'bene_gesserit+fremen':
+    'BG: Advisors in Fremen territories count for stronghold control. Fremen: Fedaykin fight at +1 strength.',
+  'bene_gesserit+spacing_guild':
+    'BG: ship forces at Guild rates. Guild: BG prediction protects Guild if prediction succeeds.',
+  'bene_gesserit+emperor':
+    'BG: Advisors count in Imperial Basin. Emperor: one free Sardaukar revival per turn.',
+  'bene_gesserit+harkonnen':
+    'BG: look at one Harkonnen card per turn. Harkonnen: one captured leader cannot be traitor-called per turn.',
+  'fremen+spacing_guild':
+    'Fremen: ship forces free alongside Guild shipments. Guild: Fremen don\'t contest Guild strongholds.',
+  'fremen+emperor':
+    'Fremen: Fedaykin fight at full strength in storm sectors. Emperor: Sardaukar can station in Sietch Tabr area.',
+  'fremen+harkonnen':
+    'Fremen: receive one Harkonnen treachery card per turn. Harkonnen: forces in Fremen strongholds immune to worms.',
+  'emperor+spacing_guild':
+    'Emperor pays half shipping cost. Guild: Emperor can ship Sardaukar off-planet for free once per turn.',
+  'harkonnen+spacing_guild':
+    'Harkonnen ships at half cost. Guild: Harkonnen draws one extra treachery card per turn.',
+  'emperor+harkonnen':
+    'Combined forces in the same territory fight as one unit. Both factions collect spice from each other\'s territories.',
+}
+
+function getAllianceBonus(a, b) {
+  const key = [a, b].sort().join('+')
+  return ALLIANCE_BONUSES[key] ?? 'Alliance formed — win together with 4 strongholds (instead of 3 solo).'
+}
+
 export default function NexusPanel({
   gameState,
   myPlayer,
@@ -206,6 +245,38 @@ export default function NexusPanel({
           You have finished your nexus turn.
         </p>
       )}
+
+      {/* Alliance bonuses reference — collapsible */}
+      <details className="border-t border-[#3a3020] pt-2">
+        <summary className="text-[10px] text-gray-500 cursor-pointer hover:text-gray-300 uppercase tracking-wider select-none">
+          Alliance Bonuses ▾
+        </summary>
+        <div className="mt-2 space-y-1.5">
+          {hasAlly ? (
+            /* Show current alliance bonus */
+            <div className="bg-yellow-900/20 border border-yellow-700/30 rounded p-2">
+              <p className="text-[10px] font-semibold text-yellow-400 mb-1">
+                Your alliance with {FACTION_LABELS[myPlayer.ally] ?? myPlayer.ally}:
+              </p>
+              <p className="text-[10px] text-gray-300 leading-relaxed">
+                {getAllianceBonus(myPlayer.faction, myPlayer.ally)}
+              </p>
+            </div>
+          ) : (
+            /* Show potential bonuses for each other faction */
+            otherFactions.map(f => (
+              <div key={f} className="rounded bg-[#1a1510] border border-[#2a2010] p-1.5">
+                <p className={`text-[10px] font-semibold mb-0.5 ${FACTION_COLORS[f] ?? 'text-gray-300'}`}>
+                  + {FACTION_LABELS[f] ?? f}
+                </p>
+                <p className="text-[9px] text-gray-500 leading-relaxed">
+                  {getAllianceBonus(myPlayer.faction, f)}
+                </p>
+              </div>
+            ))
+          )}
+        </div>
+      </details>
     </div>
   )
 }

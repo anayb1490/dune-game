@@ -70,6 +70,34 @@ class GameActionType(str, Enum):
     ACCEPT_ALLIANCE = "accept_alliance"
     BREAK_ALLIANCE = "break_alliance"
     PASS_NEXUS = "pass_nexus"
+    # Setup faction sub-phases
+    BG_PREDICTION = "bg_prediction"
+    FREMEN_PLACEMENT = "fremen_placement"
+    ATREIDES_PRESCIENCE = "atreides_prescience"
+    # Faction ability actions
+    ACK_MOVEMENT_PRESCIENCE = "ack_movement_prescience"
+    BG_FREE_SHIP = "bg_free_ship"
+    PASS_BG_FREE_SHIP = "pass_bg_free_ship"
+    FLIP_ADVISORS_TO_FIGHTERS = "flip_advisors_to_fighters"
+    FLIP_FIGHTERS_TO_ADVISORS = "flip_fighters_to_advisors"
+    GUILD_CROSS_SHIP = "guild_cross_ship"
+    GUILD_SHIP_TO_RESERVES = "guild_ship_to_reserves"
+    ISSUE_VOICE = "issue_voice"
+    ACKNOWLEDGE_VOICE = "acknowledge_voice"
+    ASK_PRESCIENCE = "ask_prescience"
+    REVEAL_PRESCIENCE = "reveal_prescience"
+    DONE_PREBATTLE = "done_prebattle"
+    # Advanced Fremen abilities
+    FREMEN_SANDWORM_RIDE = "fremen_sandworm_ride"
+    FREMEN_SKIP_SANDWORM_RIDE = "fremen_skip_sandworm_ride"
+    # Special treachery card actions
+    PLAY_KARAMA_BLOCK = "play_karama_block"
+    PLAY_KARAMA_POWER = "play_karama_power"
+    PLAY_TLEILAXU_GHOLA = "play_tleilaxu_ghola"
+    PLAY_FAMILY_ATOMICS = "play_family_atomics"
+    PLAY_HAJR = "play_hajr"
+    PLAY_WEATHER_CONTROL = "play_weather_control"
+    PLAY_TRUTHTRANCE = "play_truthtrance"
 
 
 class GameActionRequest(BaseModel):

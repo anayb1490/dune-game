@@ -26,3 +26,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+# RAG index (generated from rulebook — rebuild with indexer.py)
+backend/data/rag/chunks.json
+backend/data/rag/embeddings.npy

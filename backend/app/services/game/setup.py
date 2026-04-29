@@ -334,6 +334,58 @@ def process_traitor_selection(
 # Storm dial (interactive)
 # ---------------------------------------------------------------------------
 
+def _next_setup_sub_phase(
+    game_state: GameState,
+    after: "SetupSubPhase | None" = None,
+) -> "SetupSubPhase | None":
+    """
+    Return the first required optional setup sub-phase that comes after `after`,
+    or None if setup should be finalised.
+
+    Order: BG_PREDICTION → FREMEN_PLACEMENT → ATREIDES_PRESCIENCE
+    Each is only included when the relevant faction/mode combination is present.
+    """
+    is_advanced = game_state.mode == GameMode.ADVANCED
+    factions = {p.faction for p in game_state.players}
+
+    ordered: list[SetupSubPhase] = []
+    if FactionName.BENE_GESSERIT in factions and is_advanced:
+        ordered.append(SetupSubPhase.BG_PREDICTION)
+    if FactionName.FREMEN in factions:
+        ordered.append(SetupSubPhase.FREMEN_PLACEMENT)
+    if FactionName.ATREIDES in factions and is_advanced:
+        ordered.append(SetupSubPhase.ATREIDES_PRESCIENCE)
+
+    if after is None:
+        return ordered[0] if ordered else None
+    try:
+        idx = ordered.index(after)
+        return ordered[idx + 1] if idx + 1 < len(ordered) else None
+    except ValueError:
+        return ordered[0] if ordered else None
+
+
+def _transition_to_sub_phase(
+    game_state: GameState,
+    new_setup: "SetupState",
+    sub_phase: "SetupSubPhase",
+    storm_sector: int,
+) -> GameState:
+    """Transition setup_state to `sub_phase`, injecting any needed data."""
+    updates: dict = {"sub_phase": sub_phase}
+
+    if sub_phase == SetupSubPhase.ATREIDES_PRESCIENCE:
+        # Store top 5 cards as plain dicts so Atreides can study them
+        preview = [c.model_dump() for c in game_state.treachery_deck[:5]]
+        updates["atreides_prescience_cards"] = preview
+
+    updated_setup = new_setup.model_copy(update=updates)
+    return game_state.model_copy(update={
+        "setup_state": updated_setup,
+        "storm_sector": storm_sector,
+    })
+
+
 def process_storm_dial(
     game_state: GameState,
     player_id: str,
@@ -359,19 +411,184 @@ def process_storm_dial(
         raise ValueError("Storm dial number must be between 0 and 20.")
 
     new_submissions = {**setup.storm_dial_submissions, player_id: number}
-    new_setup = setup.model_copy(update={
-        "storm_dial_submissions": new_submissions,
-    })
-
+    new_setup = setup.model_copy(update={"storm_dial_submissions": new_submissions})
     new_state = game_state.model_copy(update={"setup_state": new_setup})
 
-    # If both players have submitted, finalize setup
+    # If both players have submitted, determine next sub-phase
     if len(new_submissions) == 2:
         total = sum(new_submissions.values())
-        storm_sector = total % 18  # Wrap around 18 sectors
-        new_state = finalize_setup(new_state, storm_sector)
+        storm_sector = total % 18
+        new_state = new_state.model_copy(update={"storm_sector": storm_sector})
+
+        next_phase = _next_setup_sub_phase(new_state, after=None)
+        if next_phase is not None:
+            return _transition_to_sub_phase(new_state, new_setup, next_phase, storm_sector)
+        return finalize_setup(new_state, storm_sector)
 
     return new_state
+
+
+# ---------------------------------------------------------------------------
+# BG Prediction (interactive, Advanced only)
+# ---------------------------------------------------------------------------
+
+def process_bg_prediction(
+    game_state: GameState,
+    player_id: str,
+    predicted_faction: FactionName,
+    predicted_turn: int,
+) -> GameState:
+    """Bene Gesserit player secretly records their prediction."""
+    if game_state.current_phase != GamePhase.SETUP:
+        raise ValueError("Game is not in setup phase.")
+    if game_state.setup_state is None:
+        raise ValueError("No setup state found.")
+    if game_state.setup_state.sub_phase != SetupSubPhase.BG_PREDICTION:
+        raise ValueError("Not in BG prediction sub-phase.")
+
+    # Validate it's the BG player
+    bg_player = next((p for p in game_state.players if p.faction == FactionName.BENE_GESSERIT), None)
+    if bg_player is None:
+        raise ValueError("No Bene Gesserit player in this game.")
+    if bg_player.id != player_id:
+        raise ValueError("Only the Bene Gesserit player can make a prediction.")
+
+    if not 1 <= predicted_turn <= 10:
+        raise ValueError("Predicted turn must be between 1 and 10.")
+    if predicted_faction == FactionName.BENE_GESSERIT:
+        raise ValueError("Bene Gesserit cannot predict themselves to win.")
+    # Ensure predicted faction is in the game
+    active_factions = {p.faction for p in game_state.players}
+    if predicted_faction not in active_factions:
+        raise ValueError(f"Faction {predicted_faction.value} is not in this game.")
+
+    # Update the BG player's prediction
+    new_prediction = Prediction(faction=predicted_faction, turn=predicted_turn, is_revealed=False)
+    new_players = [
+        p.model_copy(update={"prediction": new_prediction}) if p.faction == FactionName.BENE_GESSERIT else p
+        for p in game_state.players
+    ]
+
+    # Advance to the next setup sub-phase or finalize
+    new_state = game_state.model_copy(update={"players": new_players})
+    next_phase = _next_setup_sub_phase(new_state, after=SetupSubPhase.BG_PREDICTION)
+    if next_phase is not None:
+        assert new_state.setup_state is not None
+        return _transition_to_sub_phase(
+            new_state, new_state.setup_state, next_phase, new_state.storm_sector
+        )
+    return finalize_setup(new_state, new_state.storm_sector)
+
+
+# ---------------------------------------------------------------------------
+# Fremen Placement (interactive)
+# ---------------------------------------------------------------------------
+
+def process_fremen_placement(
+    game_state: GameState,
+    player_id: str,
+    placements: list[dict],  # [{"territory": str, "sector": int, "regular_count": int, "special_count": int}, ...]
+) -> GameState:
+    """Fremen player redistributes starting forces to any unoccupied territories."""
+    if game_state.current_phase != GamePhase.SETUP:
+        raise ValueError("Game is not in setup phase.")
+    if game_state.setup_state is None:
+        raise ValueError("No setup state found.")
+    if game_state.setup_state.sub_phase != SetupSubPhase.FREMEN_PLACEMENT:
+        raise ValueError("Not in Fremen placement sub-phase.")
+
+    fremen_player = next((p for p in game_state.players if p.faction == FactionName.FREMEN), None)
+    if fremen_player is None:
+        raise ValueError("No Fremen player in this game.")
+    if fremen_player.id != player_id:
+        raise ValueError("Only the Fremen player can place their forces.")
+
+    # Count current Fremen forces on board
+    total_regular = sum(fg.regular_count for fg in fremen_player.forces_on_board)
+    total_special = sum(fg.special_count for fg in fremen_player.forces_on_board)
+
+    # Validate placements sum matches
+    placement_regular = sum(p.get("regular_count", 0) for p in placements)
+    placement_special = sum(p.get("special_count", 0) for p in placements)
+
+    if placement_regular != total_regular:
+        raise ValueError(f"Must place exactly {total_regular} regular forces (got {placement_regular}).")
+    if placement_special != total_special:
+        raise ValueError(f"Must place exactly {total_special} special forces (got {placement_special}).")
+
+    # Validate territories exist and aren't occupied by enemies
+    occupied_by_others: set[str] = set()
+    for p in game_state.players:
+        if p.faction != FactionName.FREMEN:
+            for fg in p.forces_on_board:
+                occupied_by_others.add(fg.territory_name)
+
+    new_force_groups: list[ForceGroup] = []
+    for pl in placements:
+        territory = pl.get("territory", "")
+        if territory not in game_state.territories:
+            raise ValueError(f"Territory '{territory}' does not exist.")
+        if territory in occupied_by_others:
+            raise ValueError(f"Territory '{territory}' is occupied by another faction.")
+        reg = pl.get("regular_count", 0)
+        spec = pl.get("special_count", 0)
+        if reg < 0 or spec < 0:
+            raise ValueError("Force counts cannot be negative.")
+        if reg + spec == 0:
+            continue  # Skip empty placements
+
+        t = game_state.territories[territory]
+        sector = pl.get("sector", t.sectors[0] if t.sectors else 0)
+        new_force_groups.append(ForceGroup(
+            territory_name=territory,
+            sector=sector,
+            regular_count=reg,
+            special_count=spec,
+        ))
+
+    new_players = [
+        p.model_copy(update={"forces_on_board": new_force_groups}) if p.faction == FactionName.FREMEN else p
+        for p in game_state.players
+    ]
+    new_state = game_state.model_copy(update={"players": new_players})
+    next_phase = _next_setup_sub_phase(new_state, after=SetupSubPhase.FREMEN_PLACEMENT)
+    if next_phase is not None:
+        assert new_state.setup_state is not None
+        return _transition_to_sub_phase(
+            new_state, new_state.setup_state, next_phase, new_state.storm_sector
+        )
+    return finalize_setup(new_state, new_state.storm_sector)
+
+
+# ---------------------------------------------------------------------------
+# Atreides Prescience (interactive, Advanced only)
+# ---------------------------------------------------------------------------
+
+def process_atreides_prescience(
+    game_state: GameState,
+    player_id: str,
+) -> GameState:
+    """
+    Atreides player acknowledges that they have viewed the top treachery cards.
+    This advances setup to the next sub-phase (or finalizes if none remain).
+    """
+    if game_state.current_phase != GamePhase.SETUP:
+        raise ValueError("Game is not in setup phase.")
+    if game_state.setup_state is None:
+        raise ValueError("No setup state found.")
+    if game_state.setup_state.sub_phase != SetupSubPhase.ATREIDES_PRESCIENCE:
+        raise ValueError("Not in Atreides prescience sub-phase.")
+
+    atreides_player = next(
+        (p for p in game_state.players if p.faction == FactionName.ATREIDES), None
+    )
+    if atreides_player is None:
+        raise ValueError("No Atreides player in this game.")
+    if atreides_player.id != player_id:
+        raise ValueError("Only the Atreides player can acknowledge prescience.")
+
+    # ATREIDES_PRESCIENCE is always the last optional sub-phase
+    return finalize_setup(game_state, game_state.storm_sector)
 
 
 # ---------------------------------------------------------------------------

@@ -25,10 +25,11 @@ export default function ShipmentPanel({
   const territoryNames = Object.keys(territories || {}).sort()
   const reserveForces = myPlayer.forces_in_reserve || 0
   const movesThisTurn = myPlayer.moves_this_turn || 0
-  // Fremen in Advanced get 2 moves; everyone else gets 1
+  // Fremen in Advanced get 2 moves; everyone else gets 1; Hajr grants +1 extra
   const isFremen = myPlayer.faction === 'fremen'
   const isAdvanced = gameState?.mode === 'advanced'
-  const maxMoves = (isFremen && isAdvanced) ? 2 : 1
+  const hajrBonus = gameState?.hajr_extra_move_faction === myPlayer.faction ? 1 : 0
+  const maxMoves = ((isFremen && isAdvanced) ? 2 : 1) + hajrBonus
   const hasMoved = movesThisTurn >= maxMoves
 
   // Get sectors for selected territory

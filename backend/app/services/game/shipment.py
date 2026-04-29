@@ -15,10 +15,17 @@ Entry points:
 
 from __future__ import annotations
 
-from ...data.adjacency import is_adjacent
+from ...data.adjacency import get_reachable_within, is_adjacent
+from ...models.faction import FactionName
 from ...models.game_state import GameState
 from ...models.player import ForceGroup, Player
 from .handlers.registry import get_handler
+from .special_cards import is_karama_blocked
+
+# Territories that grant ornithopter access when a player has forces there.
+_ORNITHOPTER_TERRITORIES: frozenset[str] = frozenset({"Arrakeen", "Carthag"})
+# Movement range (territory hops) granted by ornithopter access.
+ORNITHOPTER_RANGE: int = 3
 
 
 def ship_forces(
@@ -34,6 +41,12 @@ def ship_forces(
     Cost: 1 spice per force shipped (faction abilities may modify).
     """
     player = _get_player(game_state, player_id)
+
+    # Guild Karama power: the player's shipment may be blocked for this turn
+    if is_karama_blocked(game_state, player.faction):
+        raise ValueError(
+            "Your shipment has been blocked by a Karama card this turn."
+        )
 
     if territory_name not in game_state.territories:
         raise ValueError(f"Unknown territory: {territory_name}")
@@ -130,10 +143,11 @@ def ship_forces(
     else:
         spice_bank += cost
 
-    return game_state.model_copy(update={
+    result = game_state.model_copy(update={
         "players": updated_players,
         "spice_bank": spice_bank,
     })
+    return _maybe_set_bg_pending(result, player.faction, territory_name)
 
 
 def move_forces(
@@ -185,17 +199,35 @@ def move_forces(
                         f"Cannot move to {to_territory} — your ally has forces there."
                     )
 
-    # Check adjacency
-    if not is_adjacent(from_territory, to_territory):
-        raise ValueError(f"{from_territory} is not adjacent to {to_territory}.")
-
-    # Check movement limit (standard: 1, Fremen Advanced: 2)
+    # Check movement limit (standard: 1 action, Fremen Advanced: 2 actions)
     handler = get_handler(player.faction)
-    max_moves = handler.get_max_movement_distance(player, game_state)
-    if player.moves_this_turn >= max_moves:
-        if max_moves == 1:
+    max_move_actions = handler.get_max_movement_distance(player, game_state)
+    # Hajr card grants one extra movement action this turn
+    if game_state.hajr_extra_move_faction == player.faction:
+        max_move_actions += 1
+    if player.moves_this_turn >= max_move_actions:
+        if max_move_actions == 1:
             raise ValueError("You have already moved forces this turn.")
-        raise ValueError(f"You have already used all {max_moves} moves this turn.")
+        raise ValueError(f"You have already used all {max_move_actions} moves this turn.")
+
+    # Determine movement range (hops per action).
+    # Ornithopter: owning forces in Arrakeen or Carthag grants range 3.
+    # Otherwise range is 1 (standard adjacency only).
+    move_range = _get_move_range(player, game_state)
+
+    # Validate that the destination is reachable within the allowed range.
+    if move_range == 1:
+        if not is_adjacent(from_territory, to_territory):
+            raise ValueError(f"{from_territory} is not adjacent to {to_territory}.")
+    else:
+        # BFS reachability, excluding storm-blocked sand territories as waypoints
+        blocked = _get_storm_blocked_territories(game_state)
+        reachable = get_reachable_within(from_territory, move_range, blocked)
+        if to_territory not in reachable:
+            raise ValueError(
+                f"{to_territory} is not reachable from {from_territory} "
+                f"within {move_range} territory hops."
+            )
 
     # Find existing force group
     existing = _find_force_group(player.forces_on_board, from_territory, from_sector)
@@ -270,3 +302,77 @@ def _get_player(game_state: GameState, player_id: str) -> Player:
         if player.id == player_id:
             return player
     raise ValueError(f"Player not found: {player_id}")
+
+
+def _has_ornithopter_access(player: Player) -> bool:
+    """
+    Returns True if the player currently has at least one force in Arrakeen
+    or Carthag. Per the rules, ANY force in either city grants ornithopter
+    access for that player's entire movement action.
+    """
+    return any(
+        fg.territory_name in _ORNITHOPTER_TERRITORIES
+        and (fg.regular_count + fg.special_count) > 0
+        for fg in player.forces_on_board
+    )
+
+
+def _get_move_range(player: Player, game_state: GameState) -> int:
+    """
+    Return the movement range (territory hops) for a single move action.
+
+    Ornithopter (forces in Arrakeen or Carthag): range 3.
+    All other players: range 1 (standard single-adjacency move).
+
+    Note: Fremen Advanced double-movement is handled separately via
+    get_max_movement_distance(), which allows 2 separate move actions.
+    """
+    if _has_ornithopter_access(player):
+        return ORNITHOPTER_RANGE
+    return 1
+
+
+def _maybe_set_bg_pending(
+    game_state: GameState,
+    shipping_faction: FactionName,
+    territory_name: str,
+) -> GameState:
+    """
+    After a non-BG faction ships, set the BG free-ship pending flag so BG gets
+    a chance to respond out-of-turn (Basic: Polar Sink; Advanced: that territory
+    or Polar Sink).
+
+    Does nothing if:
+      - BG was the one who shipped.
+      - BG is not in the game.
+      - BG has no forces in reserve.
+    """
+    if shipping_faction == FactionName.BENE_GESSERIT:
+        return game_state
+    bg_player = next(
+        (p for p in game_state.players
+         if p.faction == FactionName.BENE_GESSERIT and not p.is_eliminated),
+        None,
+    )
+    if bg_player is None or bg_player.forces_in_reserve <= 0:
+        return game_state
+    return game_state.model_copy(update={
+        "bg_free_ship_pending": True,
+        "bg_free_ship_last_territory": territory_name,
+    })
+
+
+def _get_storm_blocked_territories(game_state: GameState) -> frozenset[str]:
+    """
+    Return the set of sand territories where the storm sector is present.
+    These territories cannot be entered or used as ornithopter waypoints.
+
+    Imperial Basin is excluded because it has storm_exception=True.
+    The Polar Sink is never in storm and is not sand, so it is always safe.
+    """
+    storm = game_state.storm_sector
+    return frozenset(
+        name
+        for name, terr in game_state.territories.items()
+        if terr.is_sand and not terr.storm_exception and storm in terr.sectors
+    )

@@ -18,7 +18,7 @@ function factionLabel(faction) {
   return (faction || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 }
 
-export default function LeadersPanel({ leaders, traitorCards, myFaction }) {
+export default function LeadersPanel({ leaders, traitorCards, myFaction, prediction }) {
   const traitors = traitorCards || []
   const sortedLeaders = [...(leaders || [])].sort((a, b) => b.strength - a.strength)
   const hasOwnTraitor = traitors.some(t => t.faction === myFaction)
@@ -71,6 +71,37 @@ export default function LeadersPanel({ leaders, traitorCards, myFaction }) {
               </div>
             )
           })}
+        </div>
+      )}
+
+      {/* BG Prediction — only visible to the Bene Gesserit player */}
+      {prediction && myFaction === 'bene_gesserit' && (
+        <div className="border-t border-[#3a3020] mt-1.5 pt-1.5">
+          <h3 className="text-gray-500 text-[10px] uppercase tracking-widest mb-1 px-1">
+            Prediction
+          </h3>
+          <div className="rounded border border-blue-800/40 bg-blue-900/10 px-2 py-1.5 space-y-0.5">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-400 text-[10px]">Faction</span>
+              <span className="text-blue-300 text-xs font-medium">
+                {prediction.faction
+                  ? factionLabel(prediction.faction)
+                  : <span className="text-gray-600 italic">none set</span>
+                }
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-gray-400 text-[10px]">Turn</span>
+              <span className="text-blue-300 text-xs font-mono font-bold">
+                {prediction.turn ?? <span className="text-gray-600 italic">—</span>}
+              </span>
+            </div>
+            {prediction.is_revealed && (
+              <p className="text-yellow-400 text-[9px] text-center uppercase tracking-wide mt-0.5">
+                ✦ Revealed
+              </p>
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -142,6 +142,17 @@ class Player(BaseModel):
         description="Number of moves made this Shipment & Movement turn. "
                     "Standard: max 1. Fremen (Advanced): max 2."
     )
+    forces_revived_this_turn: int = Field(
+        default=0,
+        ge=0,
+        description="Total forces (free + paid) revived this Revival phase. "
+                    "Combined cap is 3 per turn."
+    )
+    leader_revived_this_turn: bool = Field(
+        default=False,
+        description="Whether this player has already revived a leader this Revival phase. "
+                    "Only one leader may be revived per turn."
+    )
 
     # -------------------------------------------------------------------------
     # Faction-specific Advanced state

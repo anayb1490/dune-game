@@ -87,6 +87,9 @@ def advance_phase(game_state: GameState) -> GameState:
         # Entering BIDDING requires initialisation
         if nxt == GamePhase.BIDDING:
             return init_bidding(base)
+        # Entering SHIPMENT_AND_MOVEMENT: reveal top spice card to Atreides (Advanced)
+        if nxt == GamePhase.SHIPMENT_AND_MOVEMENT:
+            return _inject_atreides_movement_prescience(base)
         return base
 
     # ------------------------------------------------------------------
@@ -139,31 +142,120 @@ def advance_phase(game_state: GameState) -> GameState:
             })
 
         case GamePhase.MENTAT_PAUSE:
+            # ----------------------------------------------------------------
+            # Victory check order (each level takes precedence over those below):
+            # 1. Bene Gesserit prediction (Advanced) — wins instead of predicted faction
+            # 2. Fremen special victory (Advanced) — 3 Fremen sietchs, no ally
+            # 3. Standard stronghold victory — 3 solo or 4 allied
+            # 4. Spacing Guild alternate victory (Advanced) — wins at turn 10 if no one else did
+            # 5. Turn limit (turn 10 with no winner) — game ends, no victor
+            # ----------------------------------------------------------------
+
+            # 1. BG prediction win (Advanced, takes precedence over everything)
+            bg_win = _check_bg_prediction_victory(game_state)
+            if bg_win:
+                bg_player = next(
+                    (p for p in game_state.players if p.faction == bg_win), None
+                )
+                if bg_player and bg_player.prediction:
+                    predicted_name = _FACTION_DISPLAY.get(
+                        bg_player.prediction.faction, str(bg_player.prediction.faction)
+                    )
+                    msg = (
+                        f"Bene Gesserit prediction correct! "
+                        f"{predicted_name} wins on turn {bg_player.prediction.turn} "
+                        f"— Bene Gesserit claim victory!"
+                    )
+                else:
+                    msg = "Bene Gesserit prediction fulfilled — they win!"
+                new_log = (game_state.game_log + [msg])[-60:]
+                return game_state.model_copy(update={
+                    "is_game_over": True,
+                    "winner": bg_win,
+                    "ally_winner": None,
+                    "win_condition": "Bene Gesserit prediction fulfilled",
+                    "bg_prediction_revealed": True,
+                    "phase_messages": [msg],
+                    "game_log": new_log,
+                })
+
+            # 2. Fremen special victory (Advanced) — must be checked before standard stronghold
+            fremen_win = _check_fremen_special_victory(game_state)
+            if fremen_win:
+                msg = (
+                    "Fremen victory! They control Sietch Tabr, Habbanya Sietch, "
+                    "and Tuek's Sietch — the desert is theirs!"
+                )
+                new_log = (game_state.game_log + [msg])[-60:]
+                return game_state.model_copy(update={
+                    "is_game_over": True,
+                    "winner": fremen_win,
+                    "ally_winner": None,
+                    "win_condition": "Fremen desert control (Sietch Tabr, Habbanya Sietch, Tuek's Sietch)",
+                    "phase_messages": [msg],
+                    "game_log": new_log,
+                })
+
+            # 3. Standard stronghold victory (3 solo, 4 allied)
             winner = _check_stronghold_victory(game_state)
             if winner:
-                # Also record the ally as a co-winner if this is an alliance victory
                 winner_player = next(
                     (p for p in game_state.players if p.faction == winner), None
                 )
                 ally_winner = winner_player.ally if winner_player else None
+                winner_name = _FACTION_DISPLAY.get(winner, str(winner))
+                if ally_winner:
+                    ally_name = _FACTION_DISPLAY.get(ally_winner, str(ally_winner))
+                    msg = (
+                        f"{winner_name} and {ally_name} win together — "
+                        f"their alliance controls 4 strongholds!"
+                    )
+                else:
+                    msg = f"{winner_name} wins — they control 3 strongholds!"
+                new_log = (game_state.game_log + [msg])[-60:]
+                win_cond = (
+                    "Alliance controls 4 strongholds" if ally_winner
+                    else "Controls 3 strongholds"
+                )
                 return game_state.model_copy(update={
                     "is_game_over": True,
                     "winner": winner,
                     "ally_winner": ally_winner,
+                    "win_condition": win_cond,
+                    "phase_messages": [msg],
+                    "game_log": new_log,
                 })
-            alt_winner = _check_turn_limit_winner(game_state)
-            if alt_winner:
+
+            # 4. Spacing Guild alternate victory (Advanced, turn 10 only)
+            guild_win = _check_guild_alternate_victory(game_state)
+            if guild_win:
+                msg = (
+                    "No faction has conquered Arrakis. "
+                    "The Spacing Guild tightens its monopoly — Guild wins!"
+                )
+                new_log = (game_state.game_log + [msg])[-60:]
                 return game_state.model_copy(update={
                     "is_game_over": True,
-                    "winner": alt_winner,
+                    "winner": guild_win,
                     "ally_winner": None,
+                    "win_condition": "Spacing Guild economic monopoly (turn 10)",
+                    "phase_messages": [msg],
+                    "game_log": new_log,
                 })
+
+            # 5. Hard turn limit — game ends with no victor
             if game_state.current_turn >= MAX_TURNS:
+                msg = "The game ends with no faction controlling enough strongholds. No victor."
+                new_log = (game_state.game_log + [msg])[-60:]
                 return game_state.model_copy(update={
                     "is_game_over": True,
                     "winner": None,
                     "ally_winner": None,
+                    "win_condition": "Stalemate — no faction achieved victory",
+                    "phase_messages": [msg],
+                    "game_log": new_log,
                 })
+
             messages = [
                 f"No faction controls enough strongholds "
                 f"(3 solo or 4 with an ally). "
@@ -254,11 +346,17 @@ def _advance_player_or_phase(game_state: GameState, current_phase: GamePhase) ->
             "current_phase": next_phase(current_phase),
             "current_player_index": 0,
             "players": players,
+            # Any un-used BG free ship opportunity expires when the turn advances
+            "bg_free_ship_pending": False,
+            "bg_free_ship_last_territory": None,
         })
     else:
         return game_state.model_copy(update={
             "current_player_index": next_idx,
             "players": players,
+            # Any un-used BG free ship opportunity expires when the turn advances
+            "bg_free_ship_pending": False,
+            "bg_free_ship_last_territory": None,
         })
 
 
@@ -379,6 +477,24 @@ def _spice_collection_messages(before: GameState, after: GameState) -> list[str]
 # Victory checks
 # ---------------------------------------------------------------------------
 
+def _check_bg_prediction_victory(game_state: GameState) -> FactionName | None:
+    """
+    Check if the Bene Gesserit prediction win condition is satisfied.
+    BG wins immediately if, at Mentat Pause, the faction they predicted controls
+    enough strongholds AND it is the exact turn they predicted.
+    This takes precedence over all other win conditions (Advanced only).
+    """
+    if game_state.mode.value != "advanced":
+        return None
+    from .handlers.registry import get_handler
+    for player in game_state.players:
+        if player.faction == FactionName.BENE_GESSERIT and not player.is_eliminated:
+            handler = get_handler(player.faction)
+            if handler.check_alternate_victory(player, game_state):
+                return FactionName.BENE_GESSERIT
+    return None
+
+
 def _check_stronghold_victory(game_state: GameState) -> FactionName | None:
     """
     Check if any faction (or alliance) controls enough strongholds.
@@ -447,18 +563,78 @@ def _check_stronghold_victory(game_state: GameState) -> FactionName | None:
     return None
 
 
+def _check_fremen_special_victory(game_state: GameState) -> FactionName | None:
+    """
+    Check whether Fremen have won via their special victory condition (Advanced).
+    Fremen win if they control Sietch Tabr, Habbanya Sietch, and Tuek's Sietch
+    with no ally, regardless of how many other factions control standard strongholds.
+    This takes precedence over the standard stronghold check.
+    """
+    if game_state.mode.value != "advanced":
+        return None
+    from .handlers.registry import get_handler
+    for player in game_state.players:
+        if player.faction == FactionName.FREMEN and not player.is_eliminated:
+            handler = get_handler(player.faction)
+            if handler.check_alternate_victory(player, game_state):
+                return FactionName.FREMEN
+    return None
+
+
+def _check_guild_alternate_victory(game_state: GameState) -> FactionName | None:
+    """
+    Check whether the Spacing Guild wins via their alternate victory condition.
+    Guild wins at the end of turn 10 if no other faction controls enough strongholds
+    (Advanced mode only).
+    """
+    if game_state.mode.value != "advanced":
+        return None
+    from .handlers.registry import get_handler
+    for player in game_state.players:
+        if player.faction == FactionName.SPACING_GUILD and not player.is_eliminated:
+            handler = get_handler(player.faction)
+            if handler.check_alternate_victory(player, game_state):
+                return FactionName.SPACING_GUILD
+    return None
+
+
 def _check_turn_limit_winner(game_state: GameState) -> FactionName | None:
     """
-    When the turn limit is reached with no winner, the Spacing Guild
-    wins (Advanced mode only) if they are in the game.
-
-    Returns the winning faction or None.
+    Called from advance_turn() when the game exceeds MAX_TURNS.
+    Checks Guild's alternate victory (Advanced) and falls back to None.
+    Kept for backward compatibility with advance_turn().
     """
-    from .handlers.registry import get_handler
+    return _check_guild_alternate_victory(game_state)
 
-    for player in game_state.players:
-        handler = get_handler(player.faction)
-        if handler.check_alternate_victory(player, game_state):
-            return player.faction
 
-    return None
+def _inject_atreides_movement_prescience(game_state: GameState) -> GameState:
+    """
+    Advanced: when entering the Shipment & Movement phase, reveal the top card
+    of the Spice Deck to the Atreides player (and only them).
+
+    Stores the card as a dict on `atreides_movement_prescience` and resets
+    the `atreides_movement_prescience_seen` flag. The state_filter will expose
+    this to Atreides and hide it from everyone else.
+    """
+    if game_state.mode.value != "advanced":
+        return game_state
+
+    # Check if Atreides is in the game
+    atreides = next(
+        (p for p in game_state.players
+         if p.faction == FactionName.ATREIDES and not p.is_eliminated),
+        None,
+    )
+    if atreides is None:
+        return game_state
+
+    if not game_state.spice_deck:
+        return game_state
+
+    top_card = game_state.spice_deck[0]
+    card_dict = top_card.model_dump(mode="json")
+
+    return game_state.model_copy(update={
+        "atreides_movement_prescience": card_dict,
+        "atreides_movement_prescience_seen": False,
+    })

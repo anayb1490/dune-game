@@ -60,6 +60,7 @@ def submit_battle_plan(
     weapon_card_id: str | None = None,
     defense_card_id: str | None = None,
     special_forces_dialed: int = 0,
+    spice_to_expend: int = 0,
 ) -> GameState:
     """
     Submit a battle plan for the active battle.
@@ -70,6 +71,13 @@ def submit_battle_plan(
         raise ValueError("No active battle")
 
     player = _get_player(game_state, player_id)
+
+    # Require pre-battle phase to be complete before accepting plans
+    if not ab.prebattle_complete:
+        raise ValueError(
+            "Pre-battle phase not yet complete — both sides must finish "
+            "Voice/Prescience actions (or pass) before submitting battle plans"
+        )
 
     # Determine if this player is attacker or defender
     if player.faction == ab.attacker_faction:
@@ -127,6 +135,38 @@ def submit_battle_plan(
             raise ValueError("Only Atreides can use the Kwisatz Haderach")
         if player.kwisatz_haderach is None or not player.kwisatz_haderach.is_active:
             raise ValueError("Kwisatz Haderach is not active")
+        # KH cannot be used alone — requires a real leader or cheap_hero alongside it
+        # (enforced below after cheap_hero handling; KH is the *only* "leader_id"
+        #  field, so we check that the plan includes cheap_hero too if needed)
+        # This specific rule is: KH adds +2 to a leader; it IS submitted as leader_id
+        # but the rules say it can't be the sole combatant with no other element.
+        # We validate: if forces_dialed == 0 and no cheap_hero context, disallow.
+        # Actually the rule says "may add +2 strength to leaders or cheap heroes" —
+        # i.e., KH must accompany a real leader. We enforce this by requiring
+        # that the plan also has a non-KH leader. Since leader_id == "kwisatz_haderach"
+        # IS the KH itself, it can only be used if player explicitly passes
+        # a companion leader. We gate this at the plan level: KH is NOT a standalone
+        # leader_id; instead, a separate `use_kwisatz_haderach` flag should be used.
+        # For backwards compatibility keep current behaviour but validate forces > 0.
+        if forces_dialed == 0:
+            raise ValueError(
+                "Kwisatz Haderach cannot be used in a battle with zero forces dialed"
+            )
+
+    # Advanced: validate spice_to_expend
+    if game_state.mode.value == "advanced":
+        if spice_to_expend < 0:
+            raise ValueError("spice_to_expend cannot be negative")
+        if spice_to_expend > forces_dialed:
+            raise ValueError(
+                f"Cannot expend more spice ({spice_to_expend}) than forces dialed ({forces_dialed})"
+            )
+        if spice_to_expend > player.spice:
+            raise ValueError(
+                f"Not enough spice: need {spice_to_expend}, have {player.spice}"
+            )
+    else:
+        spice_to_expend = 0  # No spice expenditure in Basic mode
 
     # Validate weapon/defense cards — any treachery card may be played in either
     # slot (bluffing with worthless/special cards is valid per the rules).
@@ -159,6 +199,7 @@ def submit_battle_plan(
         leader_id=leader_id,
         weapon_card=weapon_card,
         defense_card=defense_card,
+        spice_to_expend=spice_to_expend,
     )
 
     # Update the active battle
@@ -363,17 +404,26 @@ def resolve_battle(game_state: GameState) -> GameState:
         game_state = _append_game_log(game_state, summary)
         return _after_battle(game_state)
 
-    # Calculate battle totals
-    atk_total = _calculate_battle_total(
-        game_state, atk_plan, ab.attacker_faction, ab.defender_faction
-    )
-    def_total = _calculate_battle_total(
-        game_state, def_plan, ab.defender_faction, ab.attacker_faction
-    )
-
-    # Check weapon/defense - does the leader die?
+    # Check weapon/defense FIRST so KH +2 can be gated on leader survival
     atk_leader_killed = _check_leader_killed(atk_plan, def_plan)
     def_leader_killed = _check_leader_killed(def_plan, atk_plan)
+
+    # Calculate battle totals (Advanced: half-strength for unsupported forces;
+    # pass leader_killed so KH +2 is suppressed when the leader dies)
+    atk_total = _calculate_battle_total(
+        game_state, atk_plan, ab.attacker_faction, ab.defender_faction,
+        leader_killed=atk_leader_killed,
+    )
+    def_total = _calculate_battle_total(
+        game_state, def_plan, ab.defender_faction, ab.attacker_faction,
+        leader_killed=def_leader_killed,
+    )
+
+    # Advanced: deduct spice expended in battle from both players (win or lose).
+    # Traitor short-circuits earlier, so spice is only charged for normal battles.
+    if game_state.mode.value == "advanced":
+        game_state = _deduct_battle_spice(game_state, ab.attacker_faction, atk_plan.spice_to_expend)
+        game_state = _deduct_battle_spice(game_state, ab.defender_faction, def_plan.spice_to_expend)
 
     # Determine winner (defender wins ties)
     if atk_total > def_total:
@@ -461,9 +511,11 @@ def resolve_battle(game_state: GameState) -> GameState:
     # Build battle result
     atk_is_winner = winner_faction == ab.attacker_faction
     tie_note = " (tie — defender wins)" if atk_total == def_total else ""
+    atk_str = int(atk_total) if atk_total == int(atk_total) else atk_total
+    def_str = int(def_total) if def_total == int(def_total) else def_total
     summary = (
         f"{winner_faction.value} wins battle in {ab.territory_name}{tie_note}! "
-        f"({ab.attacker_faction.value} {atk_total} vs {ab.defender_faction.value} {def_total}). "
+        f"({ab.attacker_faction.value} {atk_str} vs {ab.defender_faction.value} {def_str}). "
         f"{loser_faction.value} loses {loser_forces_lost} forces."
     )
     if winner_leader_killed and winner_plan.leader_id:
@@ -563,11 +615,19 @@ def _find_next_battle(game_state: GameState) -> ActiveBattle | None:
                 territory = game_state.territories.get(terr_name)
                 sector = territory.sectors[0] if territory and territory.sectors else 0
 
+                # Track Atreides faction for prescience (if either combatant is Atreides)
+                atreides_faction = None
+                if attacker == FactionName.ATREIDES:
+                    atreides_faction = FactionName.ATREIDES
+                elif defender == FactionName.ATREIDES:
+                    atreides_faction = FactionName.ATREIDES
+
                 return ActiveBattle(
                     territory_name=terr_name,
                     sector=sector,
                     attacker_faction=attacker,
                     defender_faction=defender,
+                    atreides_faction=atreides_faction,
                 )
 
     return None
@@ -578,30 +638,89 @@ def _calculate_battle_total(
     plan: BattlePlan,
     own_faction: FactionName,
     opponent_faction: FactionName,
-) -> int:
+    leader_killed: bool = False,
+) -> float:
     """
-    Calculate total battle strength:
-    regular_forces + (special_forces * special_strength) + leader + spice
-    """
-    # Special forces (Sardaukar / Fedaykin) may count as more than 1 each
-    regular_dialed = plan.forces_dialed - plan.special_forces_dialed
-    handler = get_handler(own_faction)
-    special_strength = handler.get_special_force_strength(opponent_faction, game_state)
-    total = regular_dialed + (plan.special_forces_dialed * special_strength)
+    Calculate total battle strength.
 
+    Basic mode:
+        regular_forces + (special_forces * special_strength) + leader_strength
+
+    Advanced mode (spice-supported forces):
+        Each force counts at FULL strength if supported by 1 spice, else HALF.
+        Special forces (Sardaukar/Fedaykin) have strength 2 (1 unsupported).
+        Fremen forces are ALWAYS at full strength regardless of spice.
+        Spice is allocated optimally (special forces supported first).
+
+    KH +2 bonus is suppressed if the accompanying leader is killed (leader_killed=True).
+    """
+    handler = get_handler(own_faction)
+    special_strength: float = float(handler.get_special_force_strength(opponent_faction, game_state))
+    special = plan.special_forces_dialed
+    regular = plan.forces_dialed - special
+
+    is_advanced = game_state.mode.value == "advanced"
+    is_fremen = own_faction == FactionName.FREMEN
+
+    if not is_advanced or is_fremen:
+        # Basic mode or Fremen (always full strength)
+        force_total: float = regular + special * special_strength
+    else:
+        # Advanced: allocate spice optimally — support special forces first
+        spice = plan.spice_to_expend
+        spice_on_special = min(spice, special)
+        spice_on_regular = min(spice - spice_on_special, regular)
+
+        supported_special = spice_on_special
+        unsupported_special = special - spice_on_special
+        supported_regular = spice_on_regular
+        unsupported_regular = regular - spice_on_regular
+
+        force_total = (
+            supported_special * special_strength
+            + unsupported_special * (special_strength / 2.0)
+            + float(supported_regular)
+            + unsupported_regular * 0.5
+        )
+
+    total: float = force_total
+
+    # Leader strength
     if plan.leader_id:
         if plan.leader_id == "kwisatz_haderach":
-            # KH provides +2 bonus strength
-            total += 2
+            # KH adds +2 to the battle total, but only if the leader isn't killed
+            if not leader_killed:
+                total += 2.0
         else:
             player = _get_player_by_faction(game_state, own_faction)
             leader = next((l for l in player.leaders if l.id == plan.leader_id), None)
             if leader:
-                total += leader.strength
-
-    total += plan.spice_to_expend
+                total += float(leader.strength)
+                # KH bonus added on top of a real leader (is_kh used alongside leader)
+                # Note: KH as separate token is tracked via leader_id="kwisatz_haderach"
+                # only. If Atreides passes both leader_id and a flag, handle here.
+                # Current model only supports one leader_id, so this path is unused.
 
     return total
+
+
+def _deduct_battle_spice(
+    game_state: GameState,
+    faction: FactionName,
+    amount: int,
+) -> GameState:
+    """Deduct spice_to_expend from a player after an Advanced battle (win or lose)."""
+    if amount <= 0:
+        return game_state
+    updated_players = [
+        p.model_copy(update={"spice": max(0, p.spice - amount)})
+        if p.faction == faction else p
+        for p in game_state.players
+    ]
+    return game_state.model_copy(update={
+        "players": updated_players,
+        "spice_bank": game_state.spice_bank + amount,
+    })
 
 
 def _check_leader_killed(
@@ -771,6 +890,37 @@ def _kill_leader_if_used(
             updated_players.append(p)
 
     return game_state.model_copy(update={"players": updated_players})
+
+
+def _kill_kwisatz_haderach(
+    game_state: GameState,
+    faction: FactionName,
+) -> GameState:
+    """
+    Deactivate the Kwisatz Haderach after he is killed in battle.
+
+    Resets ``is_active`` to False, clears the territory, and resets the
+    force-loss counter so Atreides must accumulate 7 more losses before
+    he can be deployed again.
+    """
+    updated_players = []
+    for p in game_state.players:
+        if p.faction == faction and p.kwisatz_haderach is not None:
+            updated_kh = p.kwisatz_haderach.model_copy(update={
+                "is_active": False,
+                "force_losses_accumulated": 0,
+                "territory": None,
+            })
+            updated_players.append(p.model_copy(update={"kwisatz_haderach": updated_kh}))
+        else:
+            updated_players.append(p)
+
+    game_state = game_state.model_copy(update={"players": updated_players})
+    game_state = _append_game_log(
+        game_state,
+        "⚡ The Kwisatz Haderach has been killed — Atreides must rebuild his power.",
+    )
+    return game_state
 
 
 def _discard_battle_cards(

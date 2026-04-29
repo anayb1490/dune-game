@@ -8,8 +8,8 @@ if TYPE_CHECKING:
     from ....models.game_state import GameState
     from ....models.player import Player
 
-# The Guild wins if no other faction has won by the end of this turn
-GUILD_ALTERNATE_VICTORY_TURN = 8
+# The Guild wins if no other faction has won by the end of the final turn (10).
+GUILD_ALTERNATE_VICTORY_TURN = 10
 
 
 class SpacingGuildHandler(FactionHandler):

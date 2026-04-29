@@ -35,6 +35,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from .api.routes.game import router as game_router
+from .api.routes.rules import router as rules_router
 from .core.config import ALLOWED_ORIGINS, API_PREFIX, APP_TITLE, APP_VERSION
 from .websocket.manager import manager
 
@@ -106,6 +107,7 @@ app.add_middleware(
 #   POST /api/games/{id}/action  → perform_action()
 
 app.include_router(game_router, prefix=API_PREFIX)
+app.include_router(rules_router, prefix=API_PREFIX)
 
 
 # ---------------------------------------------------------------------------

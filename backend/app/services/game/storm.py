@@ -49,8 +49,12 @@ def resolve_storm(
       - current_phase advanced to SPICE_BLOW
     """
     if storm_move is None:
-        # Simulate two players each dialing 1–3 on battle wheels
-        storm_move = random.randint(1, 3) + random.randint(1, 3)
+        # Check for Weather Control override (Advanced card)
+        if game_state.weather_control_override is not None:
+            storm_move = game_state.weather_control_override
+        else:
+            # Simulate two players each dialing 1–3 on battle wheels
+            storm_move = random.randint(1, 3) + random.randint(1, 3)
 
     if storm_move == 0:
         # Edge case: no movement — just advance the phase
@@ -81,6 +85,7 @@ def resolve_storm(
         "last_storm_move": storm_move,
         "players": updated_players,
         "current_phase": GamePhase.SPICE_BLOW,
+        "weather_control_override": None,  # consumed; clear for next turn
     })
 
 
@@ -118,7 +123,12 @@ def _apply_storm_damage(
 
             # Is the territory protected from the storm?
             territory = game_state.territories.get(fg.territory_name)
-            if territory and territory.is_protected_from_storm:
+            is_protected = territory is not None and territory.is_protected_from_storm
+            # Shield Wall loses its storm protection permanently once Family Atomics
+            # has been played — sectors 4-5 become exposed sand territory.
+            if is_protected and fg.territory_name == "Shield Wall" and game_state.shield_wall_destroyed:
+                is_protected = False
+            if is_protected:
                 surviving_groups.append(fg)
                 continue
 

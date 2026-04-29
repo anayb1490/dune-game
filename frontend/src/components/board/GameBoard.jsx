@@ -897,14 +897,17 @@ export default function GameBoard({
           <SpiceIndicator key={`spice-${name}`} name={name} territory={territory} />
         ))}
 
-        {/* LAYER 5: Force tokens */}
-        {Object.entries(territories).map(([name]) => (
-          <ForceTokens
-            key={`forces-${name}`}
-            name={name}
-            forceEntries={forceMap[name]}
-          />
-        ))}
+        {/* LAYER 5: Force tokens (Polar Sink rendered separately below) */}
+        {Object.entries(territories).map(([name]) => {
+          if (name === 'Polar Sink') return null
+          return (
+            <ForceTokens
+              key={`forces-${name}`}
+              name={name}
+              forceEntries={forceMap[name]}
+            />
+          )
+        })}
 
         {/* Polar Sink force tokens */}
         {forceMap['Polar Sink'] && forceMap['Polar Sink'].length > 0 && (

@@ -18,6 +18,14 @@ import BattlePanel from './BattlePanel.jsx'
 import BattleResultPanel from './BattleResultPanel.jsx'
 import GameLog from './GameLog.jsx'
 import TreacheryHandPanel from './TreacheryHandPanel.jsx'
+import VictoryScreen from './VictoryScreen.jsx'
+import SpecialCardPanel from './SpecialCardPanel.jsx'
+import PreBattlePanel from './PreBattlePanel.jsx'
+import FremenRidePanel from './FremenRidePanel.jsx'
+import PhaseMessagesPanel from './PhaseMessagesPanel.jsx'
+import FremenSietchTracker from './FremenSietchTracker.jsx'
+import FactionShipmentPanel from './FactionShipmentPanel.jsx'
+import BgFreeShipPanel from './BgFreeShipPanel.jsx'
 import GameBoard from '../board/GameBoard.jsx'
 import Button from '../ui/Button.jsx'
 import { getAdjacentTerritories } from '../../utils/adjacency.js'
@@ -55,6 +63,12 @@ export default function GameView({
   onShipForces, onMoveForces,
   onSubmitBattlePlan, onDeclareTraitor,
   onProposeAlliance, onAcceptAlliance, onBreakAlliance, onPassNexus,
+  // Pre-battle
+  onIssueVoice, onAcknowledgeVoice, onAskPrescience, onRevealPrescience, onDonePrebattle,
+  // Special cards (generic action dispatcher)
+  onAction,
+  // Fremen sandworm ride
+  onFremenRide, onFremenSkipRide,
 }) {
   const {
     current_phase,
@@ -71,6 +85,7 @@ export default function GameView({
     ally_winner,
     is_game_over,
     phase_messages,
+    fremen_sandworm_ride_territory,
   } = gameState
 
   const [boardHighlight, setBoardHighlight] = useState({ from: '', to: '' })
@@ -119,12 +134,21 @@ export default function GameView({
   const canClickAdvance = isAutomated ? isHost : isMyTurn
 
   return (
+    <>
+    {/* Full-screen victory overlay — auto-shown when game ends */}
+    {is_game_over && (
+      <VictoryScreen gameState={gameState} />
+    )}
     <main className="grid grid-cols-[180px_1fr_200px] gap-2 p-2 h-[calc(100vh-53px)] overflow-hidden">
 
       {/* -- Left column ------------------------------------------------- */}
       <aside className="space-y-2 overflow-y-auto min-h-0">
         <PhaseTracker currentPhase={current_phase} />
         <PlayerPanel players={players} currentPlayerIndex={current_player_index} />
+        <FremenSietchTracker
+          players={players}
+          isAdvanced={gameState.mode === 'advanced'}
+        />
       </aside>
 
       {/* -- Center: Board ----------------------------------------------- */}
@@ -221,6 +245,9 @@ export default function GameView({
           )}
         </div>
 
+        {/* Ephemeral phase results — cleared when phase advances */}
+        <PhaseMessagesPanel messages={phase_messages} />
+
         {/* Persistent event log — accumulates all phase events */}
         <GameLog entries={gameState.game_log || []} />
 
@@ -256,21 +283,57 @@ export default function GameView({
           />
         )}
 
+        {/* Faction-specific shipment abilities (BG + Guild) — shown on their turn */}
+        {isShipment && isMyTurn && (
+          <FactionShipmentPanel
+            myPlayer={myPlayer}
+            territories={territories}
+            gameState={gameState}
+            onAction={onAction}
+            actionBusy={actionBusy}
+          />
+        )}
+
+        {/* BG out-of-turn free ship — shown whenever pending, regardless of whose turn it is */}
+        {isShipment && gameState.bg_free_ship_pending && myPlayer?.faction === 'bene_gesserit' && (
+          <BgFreeShipPanel
+            myPlayer={myPlayer}
+            gameState={gameState}
+            territories={territories}
+            onAction={onAction}
+            actionBusy={actionBusy}
+          />
+        )}
+
         {/* Battle result — shown whenever a result is available during battle phase */}
         {current_phase === 'battle' && last_battle_result && !active_battle && (
           <BattleResultPanel result={last_battle_result} />
         )}
 
-        {/* Battle panel */}
+        {/* Battle panel — pre-battle phase + plan submission */}
         {isBattle && (
           <>
             {last_battle_result && (
               <BattleResultPanel result={last_battle_result} />
             )}
+            {/* Pre-battle: Voice + Prescience (shown before plans can be submitted) */}
+            <PreBattlePanel
+              activeBattle={active_battle}
+              myPlayer={myPlayer}
+              players={players}
+              gameState={gameState}
+              onIssueVoice={onIssueVoice}
+              onAcknowledgeVoice={onAcknowledgeVoice}
+              onAskPrescience={onAskPrescience}
+              onRevealPrescience={onRevealPrescience}
+              onDonePrebattle={onDonePrebattle}
+              actionBusy={actionBusy}
+            />
             <BattlePanel
               activeBattle={active_battle}
               myPlayer={myPlayer}
               players={players}
+              gameState={gameState}
               onSubmitPlan={onSubmitBattlePlan}
               onDeclareTraitor={onDeclareTraitor}
             />
@@ -290,6 +353,29 @@ export default function GameView({
           />
         )}
 
+        {/* Fremen sandworm ride — shown when worm triggers in Advanced mode */}
+        {myPlayer && fremen_sandworm_ride_territory && (
+          <FremenRidePanel
+            myPlayer={myPlayer}
+            gameState={gameState}
+            onRide={onFremenRide}
+            onSkip={onFremenSkipRide}
+            actionBusy={actionBusy}
+          />
+        )}
+
+        {/* Special treachery cards — out-of-battle actions */}
+        {myPlayer && !is_game_over && (
+          <SpecialCardPanel
+            myPlayer={myPlayer}
+            players={players}
+            territories={territories}
+            gameState={gameState}
+            onAction={onAction}
+            actionBusy={actionBusy}
+          />
+        )}
+
         {/* Treachery hand — always visible to the player */}
         {myPlayer && (
           <TreacheryHandPanel
@@ -298,15 +384,17 @@ export default function GameView({
           />
         )}
 
-        {/* Leaders & Traitor */}
+        {/* Leaders, Traitor & BG Prediction */}
         {myPlayer && (
           <LeadersPanel
             leaders={myPlayer.leaders}
             traitorCards={myPlayer.traitor_cards}
             myFaction={myPlayer.faction}
+            prediction={myPlayer.prediction}
           />
         )}
       </aside>
     </main>
+    </>
   )
 }

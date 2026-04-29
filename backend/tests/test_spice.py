@@ -123,6 +123,7 @@ class TestShaiHulud:
             "spice_discard": [prev_territory],
             "territories": territories,
             "current_turn": 2,  # Not first turn
+            "storm_sector": 0,  # Sector 0 is not in Red Chasm (sectors 4,5) or Hagga Basin
         })
 
         result = resolve_spice_blow(game)
@@ -309,6 +310,7 @@ class TestSpiceBank:
         game = game_at_spice_blow.model_copy(update={
             "spice_deck": [card],
             "spice_discard": [],
+            "storm_sector": 0,  # Sector 0 not in Red Chasm (sectors 4,5)
         })
 
         result = resolve_spice_blow(game)
@@ -346,6 +348,7 @@ class TestSpiceBank:
             "spice_discard": [prev_territory],
             "territories": territories,
             "current_turn": 2,
+            "storm_sector": 0,  # Sector 0 not in Hagga Basin (12,13) or Red Chasm (4,5)
         })
 
         result = resolve_spice_blow(game)

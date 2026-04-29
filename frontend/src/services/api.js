@@ -227,6 +227,138 @@ export async function passNexus(gameId, playerId) {
 }
 
 // ---------------------------------------------------------------------------
+// Setup faction sub-phase actions
+// ---------------------------------------------------------------------------
+
+export async function submitBgPrediction(gameId, playerId, predictedFaction, predictedTurn) {
+  return post(`/games/${gameId}/action`, {
+    player_id: playerId,
+    action_type: 'bg_prediction',
+    payload: { predicted_faction: predictedFaction, predicted_turn: predictedTurn },
+  });
+}
+
+export async function submitFremenPlacement(gameId, playerId, placements) {
+  return post(`/games/${gameId}/action`, {
+    player_id: playerId,
+    action_type: 'fremen_placement',
+    payload: { placements },
+  });
+}
+
+export async function submitAtreidesPrescienceAck(gameId, playerId) {
+  return post(`/games/${gameId}/action`, {
+    player_id: playerId,
+    action_type: 'atreides_prescience',
+    payload: {},
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Pre-battle actions
+// ---------------------------------------------------------------------------
+
+export async function issueVoice(gameId, playerId, targetFaction, command, cardType) {
+  return post(`/games/${gameId}/action`, {
+    player_id: playerId,
+    action_type: 'issue_voice',
+    payload: { target_faction: targetFaction, command, card_type: cardType },
+  });
+}
+
+export async function acknowledgeVoice(gameId, playerId) {
+  return post(`/games/${gameId}/action`, {
+    player_id: playerId,
+    action_type: 'acknowledge_voice',
+    payload: {},
+  });
+}
+
+export async function askPrescience(gameId, playerId, element) {
+  return post(`/games/${gameId}/action`, {
+    player_id: playerId,
+    action_type: 'ask_prescience',
+    payload: { element },
+  });
+}
+
+export async function revealPrescience(gameId, playerId, revealedValue) {
+  return post(`/games/${gameId}/action`, {
+    player_id: playerId,
+    action_type: 'reveal_prescience',
+    payload: { revealed_value: revealedValue },
+  });
+}
+
+export async function donePrebattle(gameId, playerId) {
+  return post(`/games/${gameId}/action`, {
+    player_id: playerId,
+    action_type: 'done_prebattle',
+    payload: {},
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Special treachery card actions
+// ---------------------------------------------------------------------------
+
+export async function gameAction(gameId, playerId, actionType, payload = {}) {
+  return post(`/games/${gameId}/action`, {
+    player_id: playerId,
+    action_type: actionType,
+    payload,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Advanced battle
+// ---------------------------------------------------------------------------
+
+export async function submitBattlePlanAdvanced(
+  gameId, playerId,
+  forcesDialed, leaderId = null, weaponCardId = null, defenseCardId = null,
+  specialForcesDialed = 0, spiceToExpend = 0,
+) {
+  return post(`/games/${gameId}/action`, {
+    player_id: playerId,
+    action_type: 'submit_battle_plan',
+    payload: {
+      forces_dialed: forcesDialed,
+      leader_id: leaderId,
+      weapon_card_id: weaponCardId,
+      defense_card_id: defenseCardId,
+      special_forces_dialed: specialForcesDialed,
+      spice_to_expend: spiceToExpend,
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Fremen sandworm ride
+// ---------------------------------------------------------------------------
+
+export async function fremenSandwormRide(gameId, playerId, toTerritory, toSector, regularCount, specialCount) {
+  return post(`/games/${gameId}/action`, {
+    player_id: playerId,
+    action_type: 'fremen_sandworm_ride',
+    payload: {
+      to_territory: toTerritory,
+      to_sector: toSector,
+      regular_count: regularCount,
+      special_count: specialCount,
+    },
+  });
+}
+
+export async function fremenSkipSandwormRide(gameId, playerId) {
+  return post(`/games/${gameId}/action`, {
+    player_id: playerId,
+    action_type: 'fremen_skip_sandworm_ride',
+    payload: {},
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Legacy (kept for backward compatibility with tests)
 // ---------------------------------------------------------------------------
 
